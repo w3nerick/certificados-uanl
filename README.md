@@ -66,6 +66,9 @@ npm run relayer -- estado
 npm run emitir -- lotes/<lote>/lista.csv [--simulacion]   # respaldo: emisión por CLI con links por correo
 ```
 
+**Web en Vercel:** cada push a `main` publica en producción (https://certificados-uanl.vercel.app). Las otras ramas
+generan un preview sin secretos: el relayer y las subidas solo funcionan en producción.
+
 Secretos (nunca en git ni en la app): `.env` (`PINATA_JWT`, `PINATA_GROUP_ID`, `PINATA_GATEWAY`) y
 `.env.relayer` (frase del relayer). En Vercel: `RELAYER_SEED`, `REGISTRO_ADDRESS`, `PINATA_JWT`, `PINATA_GROUP_ID`.
 `.vercelignore` es una lista blanca. `lotes/` y `salida/` (correos y códigos de reclamo) están fuera de git.
