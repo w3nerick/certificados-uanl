@@ -1,0 +1,9 @@
+{
+  "devnet": {
+    "address": "0x5e122d6822e57b943ae964d0d345bd924ac44607",
+    "block": 14399794,
+    "tx": "0x130e8d1820072ac8ddb4dff4954d2a95037c842482a655258e620dd51f48aa6b",
+    "deployer": "5ELdxEtr5WhqwrA1Jhx23WpfJ7o2STxwc8CXqQB63KcJvn72",
+    "deployedAt": "2026-10-13T19:56:41.532Z"
+  }
+}

@@ -1,0 +1,14 @@
+# Lista blanca: a Vercel solo sube lo necesario para compilar la web y la función del relayer.
+# NUNCA: .env (Pinata), .env.relayer (frase del relayer), lotes/ y salida/ (correos y códigos de reclamo).
+/*
+!api
+!src
+!public
+!tools
+!index.html
+!package.json
+!package-lock.json
+!tsconfig.json
+!vite.config.ts
+!vercel.json
+!polkadot-app-deploy.config.mjs

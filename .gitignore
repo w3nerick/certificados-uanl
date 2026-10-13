@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+*.car
+.env
+.env.*
+!.env.example
+.vercel
+# Lotes de emisión: llevan correos y los códigos secretos de reclamo
+lotes/
+salida/
+contract/node_modules/
+contract/out-test/

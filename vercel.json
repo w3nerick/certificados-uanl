@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/reclamar.ts": { "maxDuration": 120 },
+    "api/solicitar.ts": { "maxDuration": 120 },
+    "api/subida.ts": { "maxDuration": 30 }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' wss://asset-hub-paseo-rpc.n.dwellir.com wss://sys.turboflakes.io wss://people-paseo.gatotech.network wss://rpc.interweb-it.com wss://people-paseo.rotko.net https://uploads.pinata.cloud https://gateway.pinata.cloud https://ipfs.io https://salmon-single-asp-773.mypinata.cloud; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
+}

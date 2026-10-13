@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc -p tsconfig.tools.json --noEmit
+      - run: npx tsc -p api/tsconfig.json --noEmit
+      - run: npm run build
+      - run: npm run check
+
+  contrato:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contract
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: contract/package-lock.json
+      - run: npm ci
+      # Usa el ABI y el bytecode EVM versionados en out-evm/ (los mismos del deploy)
+      - run: npm test

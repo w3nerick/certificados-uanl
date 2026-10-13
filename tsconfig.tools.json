@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node"], "lib": ["ES2022", "DOM"] },
+  "include": ["tools", "api", "src/lib/reclamo.ts", "src/lib/sesion.ts"]
+}
