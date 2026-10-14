@@ -17,7 +17,8 @@
  */
 import { AccountId, type PolkadotClient, type PolkadotSigner } from 'polkadot-api';
 import { getAccountsProvider } from '@parity/product-sdk-host';
-import { SignerManager } from '@parity/product-sdk-signer';
+// Solo el tipo: el signer (con sus llaves, ~90 KB) se baja al conectar, no al abrir la app.
+import type { SignerManager } from '@parity/product-sdk-signer';
 import { insideHost, waitForHost, withTimeout, describeError, TIMED_OUT, HOST_QUERY_MS, HOST_SUBMIT_MS } from './host';
 import { people, peopleViaPublic } from './cadena';
 import { APP_DOTNS } from './red';
@@ -49,7 +50,7 @@ export async function conectar(): Promise<Sesion> {
   const inside = insideHost();
   if (inside && !(await waitForHost())) throw new Error(`No hay canal con el host. Abre ${APP_DOTNS} desde la Polkadot App.`);
 
-  manager ??= new SignerManager({ dappName: APP_DOTNS });
+  manager ??= new (await import('@parity/product-sdk-signer')).SignerManager({ dappName: APP_DOTNS });
   // connect() también pide el permiso ChainSubmit.
   const r = await withTimeout(manager.connect(inside ? 'host' : 'dev'), HOST_SUBMIT_MS);
   if (r === TIMED_OUT) throw new Error('El wallet no respondió a tiempo.');
@@ -92,14 +93,13 @@ export async function conectar(): Promise<Sesion> {
   return sesion;
 }
 
-/** Dueño (SS58) de un username en People chain, o null si no existe. Lanza si no se pudo consultar. */
-export async function usernameOwner(username: string): Promise<string | null> {
+/** Lee un storage de People chain con tope de tiempo. Lanza si no se pudo consultar. */
+async function consultarPeople<T>(leer: (client: PolkadotClient) => Promise<T>): Promise<T> {
   // La primera consulta baja la metadata: un endpoint lento tardó 23 s (testalk, sep 2026).
   const consulta = async (client: PolkadotClient) => {
-    const q = client.getUnsafeApi().query.Resources.UsernameOwnerOf.getValue(new TextEncoder().encode(username)) as Promise<string | undefined>;
-    const r = await withTimeout(q, 15_000);
+    const r = await withTimeout(leer(client), 15_000);
     if (r === TIMED_OUT) throw new Error('People chain no respondió');
-    return r ?? null;
+    return r;
   };
   const chain = await people();
   try {
@@ -109,6 +109,28 @@ export async function usernameOwner(username: string): Promise<string | null> {
     if (chain.source !== 'host') throw e;
     return consulta(peopleViaPublic().client);
   }
+}
+
+/** Dueño (SS58) de un username en People chain, o null si no existe. Lanza si no se pudo consultar. */
+export async function usernameOwner(username: string): Promise<string | null> {
+  const r = await consultarPeople(c =>
+    c.getUnsafeApi().query.Resources.UsernameOwnerOf.getValue(new TextEncoder().encode(username)) as Promise<string | undefined>);
+  return r ?? null;
+}
+
+type Bytes = Uint8Array | string | undefined;
+
+/**
+ * Username de una cuenta (`Resources.Consumers`): el completo si es persona verificada,
+ * si no el lite (esserick.01). null si la cuenta no tiene. Lanza si no se pudo consultar.
+ */
+export async function usernameDe(ss58: string): Promise<string | null> {
+  const c = await consultarPeople(cl =>
+    cl.getUnsafeApi().query.Resources.Consumers.getValue(ss58) as Promise<{ full_username?: Bytes; lite_username?: Bytes } | undefined>);
+  const u = c?.full_username ?? c?.lite_username;
+  if (u == null) return null;
+  if (typeof u !== 'string') return new TextDecoder().decode(u);
+  return /^0x([0-9a-f]{2})*$/i.test(u) ? new TextDecoder().decode(Uint8Array.from(u.slice(2).match(/../g) ?? [], b => parseInt(b, 16))) : u;
 }
 
 /**

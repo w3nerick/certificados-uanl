@@ -16,8 +16,10 @@ import user from '@phosphor-icons/core/assets/regular/user-circle.svg?raw';
 import upload from '@phosphor-icons/core/assets/regular/upload-simple.svg?raw';
 import shield from '@phosphor-icons/core/assets/regular/shield-check.svg?raw';
 import cube from '@phosphor-icons/core/assets/regular/cube.svg?raw';
+import qr from '@phosphor-icons/core/assets/regular/qr-code.svg?raw';
+import printer from '@phosphor-icons/core/assets/regular/printer.svg?raw';
 
-const ICONOS = { sealCheck, certificate, filePdf, download, linkedin, share, copy, search, arrowLeft, arrowRight, warning, checkCircle, xCircle, user, upload, shield, cube };
+const ICONOS = { sealCheck, certificate, filePdf, download, linkedin, share, copy, search, arrowLeft, arrowRight, warning, checkCircle, xCircle, user, upload, shield, cube, qr, printer };
 export type Icono = keyof typeof ICONOS;
 
 type Hijo = Node | string | null | undefined | false;
@@ -66,6 +68,23 @@ export function fechaLarga(segundos: bigint | number): string {
 
 /** Placeholder con la forma del contenido final mientras carga. */
 export const esqueleto = (lineas = 3) => el('div', { class: 'esqueleto', 'aria-busy': 'true' }, ...Array.from({ length: lineas }, () => el('span')));
+
+export type Cargando = HTMLElement & { decir(texto: string): void };
+
+/**
+ * Esqueleto con una línea que dice en qué va («Conectando con Polkadot…») en vez de
+ * esperar callado. Si pasa de 6 s, explica por qué: la primera lectura baja la
+ * descripción de la cadena (~1.3 MB); las siguientes ya no.
+ */
+export function cargando(texto: string, lineas = 3): Cargando {
+  const linea = el('p', { class: 'cargando-texto', role: 'status' }, texto);
+  const e = el('div', { class: 'cargando' }, linea, esqueleto(lineas)) as Cargando;
+  e.decir = t => { linea.textContent = t; };
+  setTimeout(() => {
+    if (e.isConnected) e.insertBefore(el('p', { class: 'ayuda' }, 'La primera conexión con Polkadot tarda unos segundos; después va más rápido.'), linea.nextSibling);
+  }, 6000);
+  return e;
+}
 
 export function aviso(tipo: 'ok' | 'mal' | 'info', texto: string, ...extra: Hijo[]): HTMLElement {
   const ic: Icono = tipo === 'ok' ? 'checkCircle' : tipo === 'mal' ? 'warning' : 'shield';

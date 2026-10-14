@@ -8,17 +8,20 @@
  *    relayer lo envía y paga. Nadie más puede cambiar el titular.
  */
 import { marco, hoja, ceja, fichaCuenta } from './comun';
-import { el, boton, aviso, esqueleto } from '../ui';
-import { certificado, contrato, errorLegible, ZERO, type Certificado } from '../lib/registro';
+import { el, boton, aviso, cargando } from '../ui';
+import { certificado, contrato, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { firmarReclamo, llaveDeCodigo } from '../lib/reclamo';
 import { resolverCuenta, cuentaDelHost, type Destino } from '../lib/cuenta';
 import { insideHost } from '../lib/host';
 import { RELAYER_URL } from '../lib/red';
 
 export async function vistaReclamar(root: HTMLElement, id: bigint, codigo: string): Promise<void> {
-  marco(root, 'otra', esqueleto(4));
+  const carga = cargando('Conectando con Polkadot…', 4);
+  marco(root, 'otra', carga);
   let c: Certificado | null;
   try {
+    await cadenaLista();
+    carga.decir(`Leyendo el folio ${id} en el registro…`);
     c = await certificado(id);
   } catch (e) {
     marco(root, 'otra', aviso('mal', `No se pudo leer la cadena: ${errorLegible(e)}`, boton('Reintentar', { onClick: () => vistaReclamar(root, id, codigo) })));

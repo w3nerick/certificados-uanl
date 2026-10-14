@@ -13,7 +13,8 @@ cada estudiante pide la suya por su nombre y cualquiera puede verificarla, tambi
 |---|---|---|
 | Organizador | `#/organizar` en Polkadot Desktop | Elige los PDF de la UANL (el nombre sale del archivo), los sube a IPFS y los emite. Revisa y aprueba solicitudes. |
 | Estudiante | `#/constancia` en la Polkadot App | Conecta su cuenta, escribe su nombre completo y toca «Es mía». No necesita saldo. |
-| Cualquiera | `#/c/<folio>` y `#/verificar` | Ve la constancia, el PDF original y comprueba que su huella coincide con la registrada. |
+| Cualquiera | `#/c/<folio>` y `#/verificar` | Ve la constancia, el PDF original y comprueba que su huella coincide con la registrada. «Mostrar QR» la abre en otro celular. |
+| Organizador | `#/cartel` en un navegador | Cartel A4 con QR y los tres pasos para reclamar, listo para imprimir o proyectar. |
 
 ```
 PDF de la UANL ─► Pinata (IPFS, red pública)          ← el archivo
@@ -43,7 +44,7 @@ Organizador: revisa usuario verificado ─► asignar(ids, cuentas)  (una firma 
 contract/         RegistroCertificados.sol, pruebas en EVM, deploy y prueba en PolkaVM
 src/              la app (TypeScript + Vite, sin framework)
   lib/            host, cadena, contrato, organizador, IPFS, sesión, reclamo
-  vistas/         inicio, constancia, organizar, certificado, mis, verificar, diagnóstico
+  vistas/         inicio, constancia, organizar, certificado, mis, verificar, cartel, diagnóstico
 api/              funciones de Vercel: reclamar, solicitar, subida
 tools/            CLI: emitir por lote, admin (emisores), relayer
 scripts/          deploy a Bulletin con pad, ficha de la app (manifest + ícono), revisión

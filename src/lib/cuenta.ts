@@ -7,8 +7,9 @@
  */
 import { AccountId } from 'polkadot-api';
 import type { Hex } from 'viem';
-import { usernameOwner, conectar } from './identidad';
+import { usernameOwner, usernameDe, conectar } from './identidad';
 import { h160De } from './registro';
+import { assetHub } from './cadena';
 
 export interface Destino {
   h160: Hex;
@@ -32,6 +33,17 @@ export async function resolverCuenta(texto: string): Promise<Destino> {
   const owner = await usernameOwner(username);
   if (!owner) throw new Error(`No hay ninguna cuenta con el usuario «${username}». Revísalo en tu perfil de la Polkadot App.`);
   return { h160: await h160De(owner), ss58: owner, etiqueta: `${username} (${owner.slice(0, 6)}…${owner.slice(-6)})`, username };
+}
+
+/**
+ * Al revés: el usuario de la Polkadot App detrás de una dirección H160 (p. ej. quien emitió
+ * un certificado). H160 → `Revive.OriginalAccount` (Asset Hub) → username (People).
+ * null si la cuenta no está mapeada o no tiene usuario.
+ */
+export async function usuarioDe(h160: Hex): Promise<string | null> {
+  const ah = (await assetHub()).client;
+  const ss58 = (await ah.getUnsafeApi().query.Revive.OriginalAccount.getValue(h160)) as string | undefined;
+  return ss58 ? usernameDe(ss58) : null;
 }
 
 /** Dentro de la Polkadot App: identidad del usuario, o su cuenta de la app si no tiene username. Abre un diálogo: solo desde un clic. */

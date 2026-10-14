@@ -4,8 +4,8 @@
  * El relayer paga la transacción; el estudiante no necesita saldo.
  */
 import { marco, hoja, cabecera, paso, fichaCuenta, ceja, nota } from './comun';
-import { el, boton, aviso, esqueleto, fechaLarga } from '../ui';
-import { todos, coincideNombre, errorLegible, ZERO, type Certificado } from '../lib/registro';
+import { el, boton, aviso, cargando, fechaLarga } from '../ui';
+import { todos, coincideNombre, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { resolverCuenta, cuentaDelHost, type Destino } from '../lib/cuenta';
 import { insideHost } from '../lib/host';
 import { SOLICITAR_URL } from '../lib/red';
@@ -73,9 +73,14 @@ export function vistaConstancia(root: HTMLElement): void {
 
   let cache: Certificado[] | null = null;
   async function buscarPor(texto: string) {
-    resultados.replaceChildren(esqueleto(3));
     try {
-      cache ??= await todos();
+      if (!cache) {
+        const carga = cargando('Conectando con Polkadot…');
+        resultados.replaceChildren(carga);
+        await cadenaLista();
+        carga.decir('Buscando tu nombre en el registro…');
+        cache = await todos();
+      }
       const pendientes = cache.filter(c => !c.revocado && c.titular.toLowerCase() === ZERO && c.llaveReclamo.toLowerCase() === ZERO);
       const hallados = pendientes.filter(c => coincideNombre(texto, c.nombre));
       if (!hallados.length) {
