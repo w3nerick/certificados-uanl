@@ -15,7 +15,7 @@ import { conectar } from '../lib/identidad';
 import { total, certificado, registroListo } from '../lib/registro';
 import { bajarPdf } from '../lib/ipfs';
 import { APP_DOTNS, RELAYER_URL, IPFS_GATEWAYS } from '../lib/red';
-import { marco } from './comun';
+import { marco, cabecera } from './comun';
 import { el } from '../ui';
 
 type Estado = 'ok' | 'mal' | 'aviso' | 'pendiente';
@@ -112,7 +112,7 @@ export function vistaDiagnostico(root: HTMLElement): void {
   };
 
   const btn = (texto: string, fn: () => Promise<unknown>) => {
-    const b = el('button', {}, texto) as HTMLButtonElement;
+    const b = el('button', { class: 'btn chico', type: 'button' }, texto) as HTMLButtonElement;
     b.onclick = async () => { b.disabled = true; try { await fn(); } finally { b.disabled = false; } };
     return b;
   };
@@ -131,8 +131,7 @@ export function vistaDiagnostico(root: HTMLElement): void {
   );
 
   marco(root, 'otra',
-    el('h1', {}, 'Diagnóstico'),
-    el('p', { class: 'muted' }, 'Las pruebas corren solas. «Cuenta» abre un diálogo del wallet: apruébalo en el celular.'),
+    cabecera('Soporte', 'Diagnóstico', 'Las pruebas corren solas. «Cuenta» abre un diálogo del wallet: apruébalo en el celular.'),
     lista,
     acciones,
     reporte,

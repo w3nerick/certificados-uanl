@@ -2,7 +2,7 @@
  * #/c/<id>: la página pública de un certificado (lo que se comparte, como la de la PBA).
  * Todo sale de la cadena; el PDF se baja de IPFS y se compara con su huella.
  */
-import { marco, hoja } from './comun';
+import { marco, hoja, ceja } from './comun';
 import { el, icono, boton, aviso, esqueleto, corta, fechaLarga } from '../ui';
 import { certificado, motivoRevocacion, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { bajarPdf, type PdfBajado } from '../lib/ipfs';
@@ -74,7 +74,7 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
   // Verificación
   const checkPdf = el('li', {}, icono('cube', 'ico espera'), el('div', {}, 'PDF original', el('small', {}, 'Bajando de IPFS y comparando su huella…')));
   const titular = cert.titular.toLowerCase() === ZERO
-    ? el('li', {}, icono('user', 'ico espera'), el('div', {}, 'Aún sin reclamar', el('small', {}, 'El estudiante lo reclama con el link de su correo.')))
+    ? el('li', {}, icono('user', 'ico espera'), el('div', {}, 'Aún sin reclamar', el('small', {}, 'El estudiante lo pide desde «Reclamar» y el organizador se lo asigna.')))
     : el('li', {}, icono('checkCircle', 'ico si'), el('div', {}, 'Reclamado', el('small', {}, `Titular ${corta(cert.titular)} · ${fechaLarga(cert.reclamadoEn)}`)));
   const revocado = cert.revocado ? el('li', {}, icono('xCircle', 'ico no'), el('div', {}, 'Revocado por la institución', el('small', {}, '…'))) : null;
   const checks = el('ul', { class: 'checks' },
@@ -127,14 +127,18 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
         area,
       ),
       el('aside', { class: 'cert-lado' },
-        el('div', { class: 'pila-s' },
+        el('div', { class: 'cert-titulo' },
+          ceja(`Folio ${cert.id}`),
           el('h2', {}, cert.nombre),
-          el('p', { class: 'muted' }, cert.programa),
+          el('p', { class: 'muted' }, cert.programa, el('br'), fechaLarga(cert.fecha)),
+          cert.revocado
+            ? el('span', { class: 'etiqueta mal' }, icono('xCircle'), 'Revocado')
+            : el('span', { class: 'etiqueta ok' }, icono('sealCheck'), 'Registrado en Polkadot'),
         ),
         el('div', { class: 'panel' }, checks),
-        el('div', { class: 'acciones' }, descargar, linkedin, copiar),
+        el('div', { class: 'acciones columna' }, descargar, linkedin, copiar),
         manual,
-        el('p', { class: 'muted mono' }, `sha256 ${cert.sha256Pdf}`),
+        el('p', { class: 'huella' }, el('span', {}, 'Huella sha256 del PDF'), el('span', {}, cert.sha256Pdf)),
       ),
     ),
   );

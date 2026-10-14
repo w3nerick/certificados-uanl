@@ -2,8 +2,8 @@
  * #/organizar: panel del organizador dentro de la Polkadot App (Polkadot Desktop).
  * Conectar → elegir PDFs de la UANL → subir y emitir → aprobar solicitudes.
  */
-import { marco } from './comun';
-import { el, boton, aviso, esqueleto, corta, poner } from '../ui';
+import { marco, cabecera, paso } from './comun';
+import { el, boton, aviso, esqueleto, corta, poner, icono } from '../ui';
 import { insideHost } from '../lib/host';
 import { pas } from '../lib/cadena';
 import { certificado, conSolicitudes, errorLegible, todos } from '../lib/registro';
@@ -24,8 +24,13 @@ const fechaUnix = (iso: string) => {
 export function vistaOrganizar(root: HTMLElement): void {
   let org: Organizador | null = null;
   const cuenta = el('div', { class: 'pila-s' });
-  const emitirZona = el('section', { class: 'pila-s' });
-  const solicitudesZona = el('section', { class: 'pila-s' });
+  const emitirZona = el('div', { class: 'pila-s' }, el('p', { class: 'ayuda' }, 'Conecta tu cuenta de emisor para elegir los PDFs.'));
+  const solicitudesZona = el('div', { class: 'pila-s' }, el('p', { class: 'ayuda' }, 'Aquí aparecen los estudiantes que pidieron una constancia.'));
+  const pasoCuenta = paso('01', 'Conectar', 'Tu cuenta de la Polkadot App con permiso de emisor.');
+  const pasoEmitir = paso('02', 'Emitir constancias', 'Sube los PDFs de la UANL y regístralos en la cadena.', emitirZona);
+  const pasoSolicitudes = paso('03', 'Aprobar solicitudes', 'Compara el nombre de la constancia con el usuario que la pide.', solicitudesZona);
+  pasoEmitir.estado('bloqueado');
+  pasoSolicitudes.estado('bloqueado');
 
   // ---------- 1. Conectar ----------
   const pintarCuenta = () => {
@@ -39,7 +44,10 @@ export function vistaOrganizar(root: HTMLElement): void {
         !o.esEmisor ? el('p', {}, 'Pide al administrador que ejecute: ', el('span', { class: 'mono' }, `npm run admin -- emisor ${o.ss58}`)) : null,
       ),
     );
+    pasoCuenta.estado(o.esEmisor ? 'hecho' : 'activo');
     if (o.esEmisor) {
+      pasoEmitir.estado('activo');
+      pasoSolicitudes.estado('activo');
       pintarEmitir();
       void pintarSolicitudes();
     }
@@ -137,13 +145,12 @@ export function vistaOrganizar(root: HTMLElement): void {
     });
 
     emitirZona.replaceChildren(
-      el('h2', {}, 'Emitir constancias'),
       el('label', { for: 'programa' }, 'Programa o evento', programa),
       el('div', { class: 'dos-col' },
         el('label', { for: 'institucion' }, 'Institución', institucion),
         el('label', { for: 'fecha' }, 'Fecha', fecha),
       ),
-      el('label', { class: 'soltar', for: 'pdfs' }, el('strong', {}, 'Elige los PDFs de la UANL'),
+      el('label', { class: 'soltar', for: 'pdfs' }, icono('filePdf'), el('strong', {}, 'Elige los PDFs de la UANL'),
         el('span', { class: 'ayuda' }, 'Si cada archivo se llama como el estudiante, el nombre se llena solo.'), archivos),
       tabla,
       el('div', { class: 'acciones' }, emitirBtn),
@@ -154,7 +161,7 @@ export function vistaOrganizar(root: HTMLElement): void {
   // ---------- 3. Solicitudes ----------
   async function pintarSolicitudes() {
     const o = org!;
-    solicitudesZona.replaceChildren(el('h2', {}, 'Solicitudes'), esqueleto(3));
+    solicitudesZona.replaceChildren(esqueleto(3));
     try {
       const lista = await conSolicitudes();
       const elegidas = new Map<bigint, Hex>();
@@ -171,7 +178,7 @@ export function vistaOrganizar(root: HTMLElement): void {
               el('span', { class: s.verificada ? 'ok' : 'muted' }, s.verificada ? 'verificado' : 'sin verificar'),
               el('br'), el('span', { class: 'mono muted' }, corta(s.titular))));
         });
-        filas.push(el('div', { class: 'panel pila-s' }, el('strong', {}, `${c.nombre} · folio ${id}`), ...opciones));
+        filas.push(el('div', { class: 'solicitud' }, el('strong', {}, `${c.nombre} · folio ${id}`), ...opciones));
       }
       const estado = el('div', { 'aria-live': 'polite' });
       const aprobarBtn = boton('Aprobar seleccionadas', {
@@ -192,24 +199,24 @@ export function vistaOrganizar(root: HTMLElement): void {
       const totales = await todos();
       const sinTitular = totales.filter(c => !c.revocado && /^0x0{40}$/i.test(c.titular)).length;
       poner(solicitudesZona,
-        el('h2', {}, 'Solicitudes'),
-        el('p', { class: 'muted' }, `${totales.length} constancias emitidas, ${sinTitular} sin titular. Compara el nombre de la constancia con el usuario de quien la pide.`),
+        el('p', { class: 'muted' }, `${totales.length} constancias emitidas, ${sinTitular} sin titular.`),
         ...(filas.length ? filas : [aviso('info', 'No hay solicitudes por revisar.')]),
-        el('div', { class: 'acciones' }, filas.length ? aprobarBtn : null, boton('Actualizar', { onClick: () => pintarSolicitudes() })),
+        el('div', { class: 'acciones' }, filas.length ? aprobarBtn : null, boton('Actualizar', { clase: filas.length ? 'fantasma' : '', onClick: () => pintarSolicitudes() })),
         estado,
       );
     } catch (e) {
-      solicitudesZona.replaceChildren(el('h2', {}, 'Solicitudes'), aviso('mal', errorLegible(e)));
+      solicitudesZona.replaceChildren(aviso('mal', errorLegible(e)));
     }
   }
 
-  marco(root, 'otra',
-    el('h1', {}, 'Panel del organizador'),
+  pasoCuenta.append(
     insideHost()
       ? el('div', { class: 'acciones' }, conectarBtn)
       : aviso('info', `Abre ${APP_DOTNS} en Polkadot Desktop para emitir y aprobar: firma con tu cuenta de la Polkadot App.`),
     cuenta,
-    emitirZona,
-    solicitudesZona,
+  );
+  marco(root, 'otra',
+    cabecera('Organizadores', 'Panel del organizador', 'Emite las constancias del evento y aprueba a quién le corresponde cada una.'),
+    el('div', { class: 'pila-s' }, pasoCuenta, pasoEmitir, pasoSolicitudes),
   );
 }
