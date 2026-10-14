@@ -47,6 +47,7 @@ src/              la app (TypeScript + Vite, sin framework)
 api/              funciones de Vercel: reclamar, solicitar, subida
 tools/            CLI: emitir por lote, admin (emisores), relayer
 scripts/          deploy a Bulletin con pad, ficha de la app (manifest + ícono), revisión
+docs/diseno.md    sistema de diseño: Polkadot México × UANL (colores, tipografía, componentes)
 ```
 
 ## Comandos

@@ -1,9 +1,9 @@
 /** #/muestra: cómo se ve un certificado, con datos de ejemplo (marca de agua MUESTRA). Para revisar el diseño con la UANL. */
-import { marco, hoja } from './comun';
-import { el, aviso } from '../ui';
+import { marco, hoja, cabecera } from './comun';
+import { el, boton } from '../ui';
 import type { Certificado } from '../lib/registro';
 
-const EJEMPLO: Certificado = {
+export const EJEMPLO: Certificado = {
   id: 1n,
   nombre: 'Mariana Garza Treviño',
   programa: 'Polkadot University México · Taller de desarrollo en Polkadot',
@@ -19,12 +19,17 @@ const EJEMPLO: Certificado = {
   revocado: false,
 };
 
-export function vistaMuestra(root: HTMLElement): void {
+/** La hoja de ejemplo con su marca de agua. */
+export function hojaMuestra(): HTMLElement {
   const h = hoja(EJEMPLO);
   h.classList.add('muestra');
+  return h;
+}
+
+export function vistaMuestra(root: HTMLElement): void {
   marco(root, 'otra',
-    el('h1', {}, 'Así se ve un certificado'),
-    aviso('info', 'Datos de ejemplo. Los certificados reales salen de la cadena.'),
-    el('div', { style: 'max-width: 860px' }, h),
+    cabecera('Ejemplo', 'Así se ve un certificado', 'Datos de ejemplo. Los certificados reales salen de la cadena: nombre, programa, fecha y la huella del PDF quedan registrados en Polkadot.'),
+    el('div', { style: 'max-width: 860px; padding-right: 8px' }, hojaMuestra()),
+    el('div', { class: 'acciones' }, boton('Reclamar mi constancia', { href: '#/constancia', icono: 'sealCheck', clase: 'primario' })),
   );
 }

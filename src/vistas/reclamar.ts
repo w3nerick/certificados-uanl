@@ -7,7 +7,7 @@
  * 3. El navegador firma (contrato, id, titular) con la llave del código y el
  *    relayer lo envía y paga. Nadie más puede cambiar el titular.
  */
-import { marco, hoja } from './comun';
+import { marco, hoja, ceja, fichaCuenta } from './comun';
 import { el, boton, aviso, esqueleto } from '../ui';
 import { certificado, contrato, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { firmarReclamo, llaveDeCodigo } from '../lib/reclamo';
@@ -41,7 +41,8 @@ export async function vistaReclamar(root: HTMLElement, id: bigint, codigo: strin
   const confirmar = (d: Destino) => {
     destino = d;
     zona.replaceChildren(
-      aviso('info', 'Tu certificado quedará a nombre de esta cuenta para siempre:', el('p', { class: 'mono' }, d.etiqueta)),
+      el('p', { class: 'ayuda' }, 'Tu certificado quedará a nombre de esta cuenta para siempre:'),
+      fichaCuenta(d),
       el('div', { class: 'acciones' },
         boton('Reclamar certificado', { icono: 'sealCheck', clase: 'primario', onClick: reclamar }),
         boton('Usar otra cuenta', { clase: 'fantasma', onClick: async () => pedirCuenta() }),
@@ -106,6 +107,7 @@ export async function vistaReclamar(root: HTMLElement, id: bigint, codigo: strin
     el('div', { class: 'cert-layout' },
       hoja(cert),
       el('aside', { class: 'cert-lado' },
+        ceja(`Folio ${cert.id}`),
         el('h2', {}, `Hola, ${cert.nombre.split(' ')[0]}`),
         el('p', { class: 'muted' }, 'Este certificado está registrado en Polkadot. Reclámalo para que quede ligado a tu cuenta y puedas compartirlo. No necesitas saldo: la institución paga la transacción.'),
         zona,

@@ -46,7 +46,8 @@ export function boton(texto: string, opts: { icono?: Icono; href?: string; clase
   if (opts.onClick) {
     b.onclick = async () => {
       b.disabled = true;
-      try { await opts.onClick!(b); } finally { b.disabled = false; }
+      b.setAttribute('aria-busy', 'true');
+      try { await opts.onClick!(b); } finally { b.disabled = false; b.removeAttribute('aria-busy'); }
     };
   }
   return b;
