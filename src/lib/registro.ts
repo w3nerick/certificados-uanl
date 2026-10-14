@@ -37,6 +37,14 @@ async function cliente(): Promise<PolkadotClient> {
   return (await assetHub()).client;
 }
 
+/**
+ * Resuelve cuando Asset Hub ya está conectado y con su metadata: lo lento de la primera
+ * lectura. Sirve para decir en pantalla en qué paso va la carga.
+ */
+export async function cadenaLista(): Promise<void> {
+  await (await cliente()).getUnsafeApi().getStaticApis();
+}
+
 export async function total(): Promise<bigint> {
   return leer<bigint>(await cliente(), contrato(), 'total');
 }
@@ -51,6 +59,11 @@ export async function certificado(id: bigint): Promise<Certificado | null> {
     if (/NoExiste/.test((e as Error).message)) return null;
     throw e;
   }
+}
+
+/** ¿La dirección tiene HOY permiso de emisor? (Un certificado emitido sigue valiendo aunque se le quite.) */
+export async function esEmisor(h160: Hex): Promise<boolean> {
+  return leer<boolean>(await cliente(), contrato(), 'emisores', [h160]);
 }
 
 export async function motivoRevocacion(id: bigint): Promise<string> {

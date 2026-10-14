@@ -51,6 +51,14 @@ pide a Google Fonts, porque la app también vive en Bulletin.
 - **Aviso**: franja de color a la izquierda (azul info, verde ok, rojo error).
 - **Hoja**: papel blanco con marco de tinta y sombra sólida de 8 px. Es el único
   elemento que mezcla los tres colores de la UANL.
+- **Carga** (`cargando()` en `src/ui.ts`): esqueleto con una línea en Space Mono que dice
+  en qué va («Conectando con Polkadot…», «Leyendo el folio 3…») y el mismo cursor cuadrado
+  de los botones ocupados. A los 6 s explica que la primera conexión tarda. Nunca un
+  esqueleto mudo: en la Polkadot App la primera lectura tarda de 8 a 12 s.
+- **QR** (`figuraQr()`): papel blanco con marco de tinta y sombra azul, el enlace escrito
+  debajo por si la cámara no lo lee. Se dibuja en el dispositivo (uqr, sin servicios externos).
+- **Cartel** (`#/cartel`): A4 vertical para imprimir o proyectar. Como la hoja, todo va en
+  `cqi`, así que la vista previa y la impresión son idénticas. Al imprimir solo queda el cartel.
 
 ## Layout
 
@@ -60,3 +68,10 @@ pide a Google Fonts, porque la app también vive en Bulletin.
 - **≤ 520 px**: botones del hero y de resultados a todo el ancho.
 
 Prueba siempre a 1280 px y a 390 px.
+
+## Accesibilidad
+
+- Al cambiar de vista, el foco va al título nuevo (`tabindex="-1"`, sin marco visible) y el
+  título de la pestaña cambia. Si el foco sigue en un campo o botón vivo, no se mueve.
+- Las pestañas Certificado / PDF original siguen el patrón de pestañas: flechas, Inicio y Fin.
+- Los mensajes de carga y los resultados van en regiones `role="status"` / `aria-live`.

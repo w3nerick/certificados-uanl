@@ -4,7 +4,7 @@
  * calcula su huella sha256 y se busca en el contrato.
  */
 import { marco, cabecera, nota } from './comun';
-import { el, icono, aviso, esqueleto, boton } from '../ui';
+import { el, icono, aviso, cargando, boton } from '../ui';
 import { porPdf, certificado, errorLegible } from '../lib/registro';
 import { sha256Hex } from '../lib/ipfs';
 
@@ -19,9 +19,11 @@ export function vistaVerificar(root: HTMLElement): void {
     if (!f) return;
     titulo.textContent = f.name;
     ayuda.textContent = 'Toca o arrastra otro PDF para revisarlo.';
-    resultado.replaceChildren(esqueleto(2));
+    const carga = cargando('Calculando la huella del PDF…', 2);
+    resultado.replaceChildren(carga);
     try {
       const huella = await sha256Hex(new Uint8Array(await f.arrayBuffer()));
+      carga.decir('Buscando esa huella en el registro de Polkadot…');
       const id = await porPdf(huella);
       if (id === 0n) {
         resultado.replaceChildren(aviso('mal', 'Este PDF no coincide con ningún certificado registrado. Si cambió aunque sea un byte (por ejemplo, al editarlo o reimprimirlo como PDF), su huella es otra.', el('p', { class: 'mono' }, huella)));

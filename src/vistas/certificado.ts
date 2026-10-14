@@ -2,9 +2,10 @@
  * #/c/<id>: la página pública de un certificado (lo que se comparte, como la de la PBA).
  * Todo sale de la cadena; el PDF se baja de IPFS y se compara con su huella.
  */
-import { marco, hoja, ceja } from './comun';
-import { el, icono, boton, aviso, esqueleto, corta, fechaLarga } from '../ui';
-import { certificado, motivoRevocacion, errorLegible, ZERO, type Certificado } from '../lib/registro';
+import { marco, hoja, ceja, figuraQr } from './comun';
+import { el, icono, boton, aviso, cargando, corta, fechaLarga } from '../ui';
+import { certificado, motivoRevocacion, esEmisor, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
+import { usuarioDe } from '../lib/cuenta';
 import { bajarPdf, type PdfBajado } from '../lib/ipfs';
 import { dibujarPdf } from '../lib/pdf';
 import { abrirFuera } from '../lib/permisos';
@@ -31,9 +32,12 @@ function linkLinkedIn(c: Certificado): string {
 }
 
 export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<void> {
-  marco(root, 'otra', esqueleto(4));
+  const carga = cargando('Conectando con Polkadot…', 4);
+  marco(root, 'otra', carga);
   let c: Certificado | null;
   try {
+    await cadenaLista();
+    carga.decir(`Leyendo el folio ${id} en el registro…`);
     c = await certificado(id);
   } catch (e) {
     marco(root, 'otra', aviso('mal', `No se pudo leer la cadena: ${errorLegible(e)}`, boton('Reintentar', { onClick: () => vistaCertificado(root, id) })));
@@ -46,17 +50,20 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
   const cert = c;
 
   // Vista: hoja on-chain o el PDF original
-  const area = el('div', {}, hoja(cert));
+  const area = el('div', { role: 'tabpanel', id: 'vista-cert', 'aria-labelledby': 'tab-hoja' }, hoja(cert));
   const lienzo = el('canvas', { class: 'lienzo', role: 'img', 'aria-label': `PDF original del certificado de ${cert.nombre}` }) as HTMLCanvasElement;
   let pdf: PdfBajado | null | undefined; // undefined = bajando
   let dibujado = false;
-  const tabHoja = el('button', { role: 'tab', 'aria-selected': 'true' }, 'Certificado');
-  const tabPdf = el('button', { role: 'tab', 'aria-selected': 'false' }, 'PDF original');
+  const tabHoja = el('button', { type: 'button', role: 'tab', id: 'tab-hoja', 'aria-controls': 'vista-cert', 'aria-selected': 'true', tabindex: '0' }, 'Certificado');
+  const tabPdf = el('button', { type: 'button', role: 'tab', id: 'tab-pdf', 'aria-controls': 'vista-cert', 'aria-selected': 'false', tabindex: '-1' }, 'PDF original');
   const mostrar = async (cual: 'hoja' | 'pdf') => {
-    tabHoja.setAttribute('aria-selected', String(cual === 'hoja'));
-    tabPdf.setAttribute('aria-selected', String(cual === 'pdf'));
+    for (const [t, sel] of [[tabHoja, cual === 'hoja'], [tabPdf, cual === 'pdf']] as const) {
+      t.setAttribute('aria-selected', String(sel));
+      t.tabIndex = sel ? 0 : -1;
+    }
+    area.setAttribute('aria-labelledby', cual === 'hoja' ? 'tab-hoja' : 'tab-pdf');
     if (cual === 'hoja') { area.replaceChildren(hoja(cert)); return; }
-    if (pdf === undefined) { area.replaceChildren(esqueleto(5)); return; }
+    if (pdf === undefined) { area.replaceChildren(cargando('Bajando el PDF original de IPFS…', 5)); return; }
     if (pdf === null) { area.replaceChildren(aviso('mal', 'No se pudo bajar el PDF de IPFS ahora. La hoja de arriba sale de la cadena y sigue siendo válida.')); return; }
     area.replaceChildren(lienzo);
     if (!dibujado) {
@@ -70,17 +77,35 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
   };
   tabHoja.onclick = () => void mostrar('hoja');
   tabPdf.onclick = () => void mostrar('pdf');
+  // Teclado como en cualquier pestaña: flechas, Inicio y Fin cambian y llevan el foco.
+  const pestanas = el('div', { class: 'pestanas', role: 'tablist', 'aria-label': 'Vista' }, tabHoja, tabPdf);
+  pestanas.onkeydown = e => {
+    const cual = e.key === 'ArrowLeft' || e.key === 'Home' ? 'hoja' : e.key === 'ArrowRight' || e.key === 'End' ? 'pdf' : null;
+    if (!cual) return;
+    e.preventDefault();
+    (cual === 'hoja' ? tabHoja : tabPdf).focus();
+    void mostrar(cual);
+  };
 
   // Verificación
   const checkPdf = el('li', {}, icono('cube', 'ico espera'), el('div', {}, 'PDF original', el('small', {}, 'Bajando de IPFS y comparando su huella…')));
   const titular = cert.titular.toLowerCase() === ZERO
     ? el('li', {}, icono('user', 'ico espera'), el('div', {}, 'Aún sin reclamar', el('small', {}, 'El estudiante lo pide desde «Reclamar» y el organizador se lo asigna.')))
     : el('li', {}, icono('checkCircle', 'ico si'), el('div', {}, 'Reclamado', el('small', {}, `Titular ${corta(cert.titular)} · ${fechaLarga(cert.reclamadoEn)}`)));
+  // Quién lo emitió: su usuario de la Polkadot App y si HOY sigue siendo emisor. Llega después; mientras, la dirección.
+  const emisor = el('span', {}, `Emitido por ${corta(cert.emitidoPor)}`);
+  if (cert.emitidoPor.toLowerCase() !== ZERO) {
+    void Promise.all([usuarioDe(cert.emitidoPor).catch(() => null), esEmisor(cert.emitidoPor).catch(() => null)]).then(([usuario, vigente]) => {
+      const quien = usuario ?? corta(cert.emitidoPor);
+      emisor.textContent = vigente === true ? `Emitido por ${quien} · emisor autorizado`
+        : vigente === false ? `Emitido por ${quien} (ya no tiene permiso de emisor)` : `Emitido por ${quien}`;
+    });
+  }
   const revocado = cert.revocado ? el('li', {}, icono('xCircle', 'ico no'), el('div', {}, 'Revocado por la institución', el('small', {}, '…'))) : null;
   const checks = el('ul', { class: 'checks' },
     revocado,
     el('li', {}, icono(cert.revocado ? 'xCircle' : 'checkCircle', cert.revocado ? 'ico no' : 'ico si'), el('div', {}, 'Registrado en la cadena',
-      el('small', {}, `${cert.institucion}`, el('br'), el('a', { href: EXPLORER_BLOCK(cert.bloque), target: '_blank', rel: 'noopener' }, `Asset Hub, bloque ${cert.bloque}`)))),
+      el('small', {}, `${cert.institucion}`, el('br'), emisor, el('br'), el('a', { href: EXPLORER_BLOCK(cert.bloque), target: '_blank', rel: 'noopener' }, `Asset Hub, bloque ${cert.bloque}`)))),
     checkPdf,
     titular,
   );
@@ -119,11 +144,27 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
     },
   });
   const linkedin = cert.revocado ? null : boton('Agregar a LinkedIn', { icono: 'linkedin', onClick: () => abrirFuera(linkLinkedIn(cert)) });
+  // QR del mismo enlace que «Copiar enlace»: para enseñarlo desde el celular y que otro lo escanee.
+  const qrZona = el('div', { id: 'qr-cert' });
+  const verQr = boton('Mostrar QR', {
+    icono: 'qr',
+    onClick: async b => {
+      const abierto = qrZona.childElementCount > 0;
+      if (abierto) qrZona.replaceChildren();
+      else {
+        try { qrZona.replaceChildren(await figuraQr(linkCompartir(cert.id), 'Escanéalo para abrir este certificado')); } catch (e) { qrZona.replaceChildren(aviso('mal', `No se pudo dibujar el QR: ${(e as Error).message}`)); }
+      }
+      b.setAttribute('aria-expanded', String(!abierto));
+      b.querySelector('span:last-child')!.textContent = abierto ? 'Mostrar QR' : 'Ocultar QR';
+    },
+  });
+  verQr.setAttribute('aria-expanded', 'false');
+  verQr.setAttribute('aria-controls', 'qr-cert');
 
   marco(root, 'otra',
     el('div', { class: 'cert-layout' },
       el('div', { class: 'pila-s' },
-        el('div', { class: 'pestanas', role: 'tablist', 'aria-label': 'Vista' }, tabHoja, tabPdf),
+        pestanas,
         area,
       ),
       el('aside', { class: 'cert-lado' },
@@ -136,8 +177,9 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
             : el('span', { class: 'etiqueta ok' }, icono('sealCheck'), 'Registrado en Polkadot'),
         ),
         el('div', { class: 'panel' }, checks),
-        el('div', { class: 'acciones columna' }, descargar, linkedin, copiar),
+        el('div', { class: 'acciones columna' }, descargar, linkedin, copiar, verQr),
         manual,
+        qrZona,
         el('p', { class: 'huella' }, el('span', {}, 'Huella sha256 del PDF'), el('span', {}, cert.sha256Pdf)),
       ),
     ),

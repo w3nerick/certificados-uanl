@@ -3,6 +3,7 @@ import { el, icono, corta, fechaLarga, type Icono } from '../ui';
 import type { Certificado } from '../lib/registro';
 import type { Destino } from '../lib/cuenta';
 import { registroListo } from '../lib/registro';
+import { qrSvg } from '../lib/qr';
 import { aviso } from '../ui';
 
 type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'otra';
@@ -21,7 +22,7 @@ function pie(): HTMLElement {
       el('div', {}, marca(), el('p', {}, 'Constancias de la Universidad Autónoma de Nuevo León registradas en Polkadot Asset Hub. Cualquiera puede comprobarlas.')),
       col('Estudiantes', ['#/constancia', 'Reclamar constancia'], ['#/mis', 'Mis certificados']),
       col('Verificar', ['#/verificar', 'Verificar un PDF'], ['#/muestra', 'Ver un ejemplo']),
-      col('Organizadores', ['#/organizar', 'Panel del organizador'], ['#/diagnostico', 'Diagnóstico']),
+      col('Organizadores', ['#/organizar', 'Panel del organizador'], ['#/cartel', 'Cartel con QR'], ['#/diagnostico', 'Diagnóstico']),
     ),
     el('div', { class: 'pie-base' }, el('span', {}, 'Polkadot University México · UANL'), el('span', {}, 'Registrado en Polkadot')),
   ));
@@ -43,6 +44,22 @@ export function marco(root: HTMLElement, actual: Seccion, ...contenido: Hijo[]):
   main.append(...contenido.filter((n): n is Node | string => n != null && n !== false));
   root.replaceChildren(barra, main, pie());
   window.scrollTo(0, 0);
+  anunciar(main);
+}
+
+/**
+ * Al cambiar de vista el foco quedaba en el vacío (el enlace tocado ya no existe): se lleva
+ * al título nuevo, para que el lector de pantalla diga dónde estás y el tabulador siga desde ahí.
+ * Si el foco sigue en un campo o botón vivo, no se toca.
+ */
+function anunciar(main: HTMLElement): void {
+  const titulo = main.querySelector<HTMLElement>('h1, h2');
+  document.title = titulo?.textContent ? `${titulo.textContent} · Certificados en Cadena` : 'Certificados en Cadena';
+  const activo = document.activeElement;
+  if (activo && activo !== document.body && document.contains(activo)) return;
+  const destino = titulo ?? main;
+  destino.setAttribute('tabindex', '-1');
+  destino.focus({ preventScroll: true });
 }
 
 /** Etiqueta en Space Mono sobre un título. */
@@ -72,6 +89,11 @@ export function paso(num: string, titulo: string, ayuda: string, ...cuerpo: Hijo
 export function nota(etiqueta: string, ...puntos: [Icono, string, string][]): HTMLElement {
   return el('aside', { class: 'nota' }, el('span', { class: 'nota-etiqueta' }, etiqueta),
     el('ul', {}, ...puntos.map(([ic, fuerte, resto]) => el('li', {}, icono(ic), el('span', {}, el('strong', {}, fuerte), ' ', resto)))));
+}
+
+/** QR con el enlace escrito debajo, por si la cámara no lo lee. */
+export async function figuraQr(link: string, leyenda: string, clase = 'qr'): Promise<HTMLElement> {
+  return el('figure', { class: clase }, await qrSvg(link), el('figcaption', {}, el('span', {}, leyenda), el('span', { class: 'mono' }, link)));
 }
 
 /** La cuenta elegida: usuario y dirección corta, más un botón opcional (Cambiar). */

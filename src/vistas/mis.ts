@@ -4,7 +4,7 @@
  * usuario en el almacenamiento del host (sobrevive a cada versión de la app).
  */
 import { marco, hoja, cabecera, fichaCuenta, ceja } from './comun';
-import { el, boton, aviso, esqueleto } from '../ui';
+import { el, boton, aviso, cargando } from '../ui';
 import { deTitular, conSolicitudes, certificado, errorLegible } from '../lib/registro';
 import { resolverCuenta, cuentaDelHost, type Destino } from '../lib/cuenta';
 import { almacen } from '../lib/almacen';
@@ -16,10 +16,12 @@ export async function vistaMis(root: HTMLElement): Promise<void> {
   const resultado = el('div', { class: 'pila-s', 'aria-live': 'polite' });
   const input = el('input', { type: 'search', id: 'buscar-cuenta', autocomplete: 'off', autocapitalize: 'none', spellcheck: 'false', placeholder: 'ana.01' }) as HTMLInputElement;
 
-  const mostrar = async (obtener: () => Promise<Destino>) => {
-    resultado.replaceChildren(esqueleto(3));
+  const mostrar = async (obtener: () => Promise<Destino>, primero: string) => {
+    const carga = cargando(primero);
+    resultado.replaceChildren(carga);
     try {
       const d = await obtener();
+      carga.decir(`Leyendo los certificados de ${d.username ?? 'esta cuenta'}…`);
       const [certs, abiertas] = await Promise.all([deTitular(d.h160), conSolicitudes().catch(() => [])]);
       const mias = abiertas.filter(a => a.solicitudes.some(s => s.titular.toLowerCase() === d.h160));
       const pendientes = (await Promise.all(mias.map(a => certificado(a.id)))).filter(c => c != null);
@@ -39,14 +41,14 @@ export async function vistaMis(root: HTMLElement): Promise<void> {
     }
   };
 
-  const buscar = boton('Buscar', { icono: 'search', clase: insideHost() ? '' : 'primario', onClick: () => mostrar(() => resolverCuenta(input.value)) });
+  const buscar = boton('Buscar', { icono: 'search', clase: insideHost() ? '' : 'primario', onClick: () => mostrar(() => resolverCuenta(input.value), 'Buscando la cuenta en Polkadot…') });
   input.onkeydown = e => { if (e.key === 'Enter') (buscar as HTMLButtonElement).click(); };
 
   marco(root, 'mis',
     cabecera('Estudiantes', 'Mis certificados', 'Los certificados asignados a tu cuenta, listos para compartir.'),
     el('div', { class: 'panel pila-s estrecho' },
       insideHost()
-        ? el('div', { class: 'acciones' }, boton('Usar mi cuenta de Polkadot App', { icono: 'user', clase: 'primario', onClick: () => mostrar(cuentaDelHost) }))
+        ? el('div', { class: 'acciones' }, boton('Usar mi cuenta de Polkadot App', { icono: 'user', clase: 'primario', onClick: () => mostrar(cuentaDelHost, 'Conectando tu cuenta: aprueba en la Polkadot App si te lo pide…') }))
         : null,
       el('div', { class: 'fila-form' },
         el('label', { for: 'buscar-cuenta' }, insideHost() ? 'O busca otra cuenta' : 'Usuario de la Polkadot App o dirección',
@@ -60,6 +62,6 @@ export async function vistaMis(root: HTMLElement): Promise<void> {
   const ultima = await almacen().then(a => a.get<string>(CLAVE)).catch(() => null);
   if (ultima && !input.value) {
     input.value = ultima;
-    void mostrar(() => resolverCuenta(ultima));
+    void mostrar(() => resolverCuenta(ultima), `Buscando ${ultima} en Polkadot…`);
   }
 }
