@@ -27,7 +27,7 @@ export function hojaMuestra(): HTMLElement {
 }
 
 export function vistaMuestra(root: HTMLElement): void {
-  marco(root, 'otra',
+  marco(root, 'muestra',
     cabecera('Ejemplo', 'Así se ve un certificado', 'Datos de ejemplo. Los certificados reales salen de la cadena: nombre, programa, fecha y la huella del PDF quedan registrados en Polkadot.'),
     el('div', { style: 'max-width: 860px; padding-right: 8px' }, hojaMuestra()),
     el('div', { class: 'acciones' }, boton('Reclamar mi constancia', { href: '#/constancia', icono: 'sealCheck', clase: 'primario' })),

@@ -2,7 +2,7 @@
  * #/c/<id>: la página pública de un certificado (lo que se comparte, como la de la PBA).
  * Todo sale de la cadena; el PDF se baja de IPFS y se compara con su huella.
  */
-import { marco, hoja, ceja, figuraQr } from './comun';
+import { marco, hoja, migas, seccionLateral, figuraQr } from './comun';
 import { el, icono, boton, aviso, cargando, corta, fechaLarga } from '../ui';
 import { certificado, motivoRevocacion, esEmisor, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { usuarioDe } from '../lib/cuenta';
@@ -90,7 +90,7 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
   // Verificación
   const checkPdf = el('li', {}, icono('cube', 'ico espera'), el('div', {}, 'PDF original', el('small', {}, 'Bajando de IPFS y comparando su huella…')));
   const titular = cert.titular.toLowerCase() === ZERO
-    ? el('li', {}, icono('user', 'ico espera'), el('div', {}, 'Aún sin reclamar', el('small', {}, 'El estudiante lo pide desde «Reclamar» y el organizador se lo asigna.')))
+    ? el('li', {}, icono('user', 'ico espera'), el('div', {}, 'Aún sin reclamar', el('small', {}, 'El estudiante lo pide desde «Reclamar constancia» y el organizador se lo asigna.')))
     : el('li', {}, icono('checkCircle', 'ico si'), el('div', {}, 'Reclamado', el('small', {}, `Titular ${corta(cert.titular)} · ${fechaLarga(cert.reclamadoEn)}`)));
   // Quién lo emitió: su usuario de la Polkadot App y si HOY sigue siendo emisor. Llega después; mientras, la dirección.
   const emisor = el('span', {}, `Emitido por ${corta(cert.emitidoPor)}`);
@@ -162,25 +162,26 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
   verQr.setAttribute('aria-controls', 'qr-cert');
 
   marco(root, 'otra',
-    el('div', { class: 'cert-layout' },
+    migas(`Folio ${cert.id}`),
+    el('div', { class: 'dos-columnas' },
       el('div', { class: 'pila-s' },
-        pestanas,
-        area,
-      ),
-      el('aside', { class: 'cert-lado' },
         el('div', { class: 'cert-titulo' },
-          ceja(`Folio ${cert.id}`),
-          el('h2', {}, cert.nombre),
-          el('p', { class: 'muted' }, cert.programa, el('br'), fechaLarga(cert.fecha)),
+          el('h1', {}, cert.nombre),
+          el('p', { class: 'lead' }, cert.programa, el('br'), fechaLarga(cert.fecha)),
           cert.revocado
             ? el('span', { class: 'etiqueta mal' }, icono('xCircle'), 'Revocado')
             : el('span', { class: 'etiqueta ok' }, icono('sealCheck'), 'Registrado en Polkadot'),
         ),
-        el('div', { class: 'panel' }, checks),
-        el('div', { class: 'acciones columna' }, descargar, linkedin, copiar, verQr),
-        manual,
-        qrZona,
-        el('p', { class: 'huella' }, el('span', {}, 'Huella sha256 del PDF'), el('span', {}, cert.sha256Pdf)),
+        pestanas,
+        area,
+      ),
+      el('aside', { class: 'lateral' },
+        seccionLateral('Verificación', checks),
+        seccionLateral('Documento',
+          el('div', { class: 'acciones columna' }, descargar),
+          el('p', { class: 'huella' }, el('span', {}, 'Huella sha256 del PDF'), el('span', {}, cert.sha256Pdf)),
+        ),
+        seccionLateral('Compartir', el('div', { class: 'acciones columna' }, linkedin, copiar, verQr), manual, qrZona),
       ),
     ),
   );

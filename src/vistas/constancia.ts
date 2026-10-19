@@ -17,8 +17,8 @@ export function vistaConstancia(root: HTMLElement): void {
   const fallo = (e: unknown) => errorCuenta.replaceChildren(aviso('mal', (e as Error).message));
   const cuerpoNombre = el('div', { class: 'pila-s' });
   const resultados = el('div', { class: 'pila-s', 'aria-live': 'polite' });
-  const pasoCuenta = paso('01', 'Tu cuenta', 'Donde quedará tu constancia.', cuerpoCuenta, errorCuenta);
-  const pasoNombre = paso('02', 'Tu nombre', 'Como aparece en tu constancia.', cuerpoNombre);
+  const pasoCuenta = paso('1', 'Tu cuenta', 'Donde quedará tu constancia.', cuerpoCuenta, errorCuenta);
+  const pasoNombre = paso('2', 'Tu nombre', 'Como aparece en tu constancia.', cuerpoNombre);
 
   const usarCuenta = (d: Destino) => {
     destino = d;

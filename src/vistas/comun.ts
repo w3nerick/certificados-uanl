@@ -1,48 +1,140 @@
-/** Marco de página (barra + contenido + pie), piezas compartidas y la hoja del certificado. */
-import { el, icono, corta, fechaLarga, type Icono } from '../ui';
+/**
+ * Marco de página con el lenguaje de los sitios de facultades de la UANL (como facpya.uanl.mx): barra
+ * gris con la universidad, cabecera blanca con la marca, menú en barra roja, banda azul a la izquierda
+ * y pie. Las vistas interiores van en una lámina gris montada sobre un banner, con «Regresar» y migas.
+ * Aquí también viven las piezas compartidas (pasos, nota, ficha de cuenta) y la hoja del certificado.
+ */
+import { el, icono, corta, fechaLarga, aviso, type Icono } from '../ui';
 import type { Certificado } from '../lib/registro';
 import type { Destino } from '../lib/cuenta';
 import { registroListo } from '../lib/registro';
 import { qrSvg } from '../lib/qr';
-import { aviso } from '../ui';
 
-type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'otra';
+export type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'muestra' | 'organizar' | 'cartel' | 'diagnostico' | 'otra';
 type Hijo = Node | string | null | undefined | false;
 
+/** Sello de la app + nombre en versales, separados por un filete (como el escudo y el nombre de cada facultad). */
 const marca = () => el('a', { class: 'marca', href: '#/' },
-  el('span', { class: 'marca-sello' }, icono('sealCheck')),
-  el('span', { class: 'marca-texto' }, el('strong', {}, 'Certificados en Cadena'), el('small', {}, 'UANL × Polkadot')),
+  el('span', { class: 'marca-sello', 'aria-hidden': 'true' }, icono('sealCheck')),
+  el('span', { class: 'marca-texto' }, el('span', {}, 'Certificados en Cadena'), el('span', {}, 'UANL × Polkadot')),
 );
+
+/**
+ * Cada vista queda numerada en el historial. «Regresar» vuelve a la anterior si se llegó desde la
+ * app; si se entró directo (QR, link del correo) lleva al inicio en vez de salir de la app.
+ * Se llama al principio de cada render.
+ */
+let ultima = -1;
+export function numerarVista(): void {
+  const n = (history.state as { n?: number } | null)?.n;
+  if (typeof n === 'number') { ultima = n; return; }
+  ultima += 1;
+  // Si el contenedor no deja tocar el historial, «Regresar» simplemente lleva al inicio.
+  try { history.replaceState({ n: ultima }, ''); } catch { /* sin historial numerado */ }
+}
+
+function regresar(): HTMLElement {
+  const a = el('a', { class: 'btn primario chico regresar', href: '#/' }, icono('caretLeft'), el('span', {}, 'Regresar'));
+  a.onclick = e => {
+    if (((history.state as { n?: number } | null)?.n ?? 0) > 0) {
+      e.preventDefault();
+      history.back();
+    }
+  };
+  return a;
+}
+
+/** «Buscar folio»: el buscador de la cabecera lleva directo a la página del certificado. */
+function buscarFolio(): HTMLElement {
+  const input = el('input', {
+    type: 'text', id: 'buscar-folio', inputmode: 'numeric', pattern: '[0-9]{1,9}', required: '',
+    autocomplete: 'off', placeholder: 'Buscar folio', title: 'El número del certificado, por ejemplo 12',
+  }) as HTMLInputElement;
+  const form = el('form', { class: 'buscar', role: 'search' },
+    el('label', { class: 'sr', for: 'buscar-folio' }, 'Buscar un certificado por su folio'),
+    input,
+    el('button', { type: 'submit', title: 'Buscar' }, icono('search'), el('span', { class: 'sr' }, 'Buscar')),
+  ) as HTMLFormElement;
+  form.onsubmit = e => {
+    e.preventDefault();
+    location.hash = `#/c/${input.value.trim()}`;
+  };
+  return form;
+}
+
+function cabeceraSitio(actual: Seccion): HTMLElement[] {
+  const link = (href: string, texto: string, s: Seccion, clase?: string) =>
+    el('a', { href, ...(s === actual ? { 'aria-current': 'page' } : {}), ...(clase ? { class: clase } : {}) }, texto);
+  return [
+    el('header', { class: 'sitio' },
+      el('div', { class: 'sup' }, el('div', { class: 'contenedor' },
+        el('p', { class: 'sup-uanl' }, 'Universidad Autónoma de Nuevo León'),
+        el('p', { class: 'sup-nota' }, icono('cube'), 'Constancias registradas en Polkadot'),
+      )),
+      el('div', { class: 'cab' }, el('div', { class: 'contenedor' },
+        marca(),
+        el('div', { class: 'cab-der' },
+          buscarFolio(),
+          el('nav', { class: 'perfiles', 'aria-label': 'Organizadores y soporte' },
+            link('#/organizar', 'Organizadores', 'organizar'),
+            link('#/cartel', 'Cartel con QR', 'cartel'),
+            link('#/diagnostico', 'Diagnóstico', 'diagnostico'),
+          ),
+        ),
+      )),
+    ),
+    el('nav', { class: 'menu', 'aria-label': 'Secciones' }, el('div', { class: 'contenedor' },
+      link('#/', 'Inicio', 'inicio', 'solo-ancho'),
+      link('#/constancia', 'Reclamar constancia', 'constancia'),
+      link('#/mis', 'Mis certificados', 'mis'),
+      link('#/verificar', 'Verificar', 'verificar'),
+    )),
+  ];
+}
 
 function pie(): HTMLElement {
   const col = (titulo: string, ...links: [string, string][]) =>
-    el('div', {}, el('h4', {}, titulo), el('ul', {}, ...links.map(([href, texto]) => el('li', {}, el('a', { href }, texto)))));
-  return el('footer', { class: 'pie' }, el('div', { class: 'pie-in' },
-    el('div', { class: 'pie-top' },
-      el('div', {}, marca(), el('p', {}, 'Constancias de la Universidad Autónoma de Nuevo León registradas en Polkadot Asset Hub. Cualquiera puede comprobarlas.')),
+    el('div', {}, el('h2', {}, titulo), el('ul', {}, ...links.map(([href, texto]) => el('li', {}, el('a', { href }, texto)))));
+  return el('footer', { class: 'pie' },
+    el('div', { class: 'pie-cuerpo' }, el('div', { class: 'contenedor pie-rejilla' },
+      el('div', { class: 'pie-marca' }, marca(), el('p', {}, 'Constancias de la Universidad Autónoma de Nuevo León registradas en Polkadot Asset Hub. Cualquiera puede comprobarlas.')),
       col('Estudiantes', ['#/constancia', 'Reclamar constancia'], ['#/mis', 'Mis certificados']),
       col('Verificar', ['#/verificar', 'Verificar un PDF'], ['#/muestra', 'Ver un ejemplo']),
       col('Organizadores', ['#/organizar', 'Panel del organizador'], ['#/cartel', 'Cartel con QR'], ['#/diagnostico', 'Diagnóstico']),
-    ),
-    el('div', { class: 'pie-base' }, el('span', {}, 'Polkadot University México · UANL'), el('span', {}, 'Registrado en Polkadot')),
-  ));
+    )),
+    el('div', { class: 'pie-legal' }, el('div', { class: 'contenedor' },
+      el('span', {}, 'Universidad Autónoma de Nuevo León · Polkadot México'),
+      el('span', {}, 'Registrado en Polkadot'),
+    )),
+  );
 }
 
+/**
+ * Pinta la página entera. El inicio va a todo lo ancho; las demás vistas van en la lámina gris
+ * (banner, «Regresar» y su contenido).
+ */
 export function marco(root: HTMLElement, actual: Seccion, ...contenido: Hijo[]): void {
-  const link = (href: string, texto: string, s: Seccion) =>
-    el('a', s === actual ? { href, 'aria-current': 'page' } : { href }, texto);
-  const barra = el('header', { class: 'barra' }, el('div', { class: 'barra-in' },
-    marca(),
-    el('nav', { 'aria-label': 'Secciones' },
-      link('#/constancia', 'Reclamar', 'constancia'),
-      link('#/mis', 'Mis certificados', 'mis'),
-      link('#/verificar', 'Verificar', 'verificar'),
-    ),
-  ));
-  const main = el('main', { class: 'pila entra' });
-  if (!registroListo()) main.append(aviso('info', 'El registro de certificados todavía no está desplegado. Las búsquedas funcionarán en cuanto lo esté.'));
-  main.append(...contenido.filter((n): n is Node | string => n != null && n !== false));
-  root.replaceChildren(barra, main, pie());
+  const piezas = contenido.filter((n): n is Node | string => n != null && n !== false);
+  const sinRegistro = registroListo() ? null : aviso('info', 'El registro de certificados todavía no está desplegado. Las búsquedas funcionarán en cuanto lo esté.');
+  const main = el('main', { id: 'contenido', class: actual === 'inicio' ? 'inicio entra' : 'interior entra' });
+  if (actual === 'inicio') {
+    if (sinRegistro) main.append(el('div', { class: 'contenedor aviso-arriba' }, sinRegistro));
+    main.append(...piezas);
+  } else {
+    const lamina = el('div', { class: 'lamina' }, regresar());
+    if (sinRegistro) lamina.append(sinRegistro);
+    lamina.append(...piezas);
+    main.append(el('div', { class: 'portada-int', 'aria-hidden': 'true' }), lamina);
+  }
+  // Con rutas en `#`, un href="#contenido" cambiaría de vista: el salto mueve el foco a mano.
+  const saltar = el('a', { class: 'saltar', href: '#/' }, 'Saltar al contenido');
+  saltar.onclick = e => {
+    e.preventDefault();
+    const destino = main.querySelector<HTMLElement>('h1') ?? main;
+    destino.setAttribute('tabindex', '-1');
+    destino.focus();
+  };
+  root.replaceChildren(saltar, el('div', { class: 'banda-uanl', 'aria-hidden': 'true' }), ...cabeceraSitio(actual), main, pie());
   window.scrollTo(0, 0);
   anunciar(main);
 }
@@ -62,17 +154,26 @@ function anunciar(main: HTMLElement): void {
   destino.focus({ preventScroll: true });
 }
 
-/** Etiqueta en Space Mono sobre un título. */
-export const ceja = (texto: string, centro = false) => el('p', { class: centro ? 'ceja centro' : 'ceja' }, texto);
+/** Etiqueta oscura, como las de categoría de las noticias: «Folio 12», «2 certificados». */
+export const ceja = (texto: string) => el('p', { class: 'ceja' }, texto);
 
-/** Encabezado de página: etiqueta, título y entrada. */
-export function cabecera(etiqueta: string, titulo: string, entrada?: string): HTMLElement {
-  return el('header', { class: 'cabecera' }, ceja(etiqueta), el('h1', {}, titulo), entrada ? el('p', { class: 'lead' }, entrada) : null);
+/** Migas de pan entre filetes, como en las páginas de las facultades: Inicio ▸ sección. */
+export function migas(...partes: string[]): HTMLElement {
+  return el('nav', { class: 'migas', 'aria-label': 'Ruta' }, el('ol', {},
+    el('li', {}, el('a', { href: '#/' }, 'Inicio')),
+    ...partes.map(p => el('li', {}, p)),
+  ));
+}
+
+/** Encabezado de una vista interior: migas (Inicio ▸ sección), título y entrada. */
+export function cabecera(seccion: string, titulo: string, entrada?: string): HTMLElement {
+  return el('header', { class: 'cabecera' }, migas(seccion),
+    el('div', { class: 'cabecera-texto' }, el('h1', {}, titulo), entrada ? el('p', { class: 'lead' }, entrada) : null));
 }
 
 export type EstadoPaso = 'activo' | 'hecho' | 'bloqueado';
 
-/** Bloque numerado de un flujo (01 Tu cuenta, 02 Tu nombre…). */
+/** Bloque numerado de un flujo (1 Tu cuenta, 2 Tu nombre…). */
 export function paso(num: string, titulo: string, ayuda: string, ...cuerpo: Hijo[]): HTMLElement & { estado(e: EstadoPaso): void } {
   const s = el('section', { class: 'paso', 'aria-label': titulo },
     el('div', { class: 'paso-cab' }, el('span', { class: 'paso-num', 'aria-hidden': 'true' }, num), el('h2', {}, titulo), el('p', {}, ayuda)),
@@ -85,11 +186,14 @@ export function paso(num: string, titulo: string, ayuda: string, ...cuerpo: Hijo
   return s;
 }
 
-/** Recuadro de ayuda: etiqueta y una lista corta con íconos. */
-export function nota(etiqueta: string, ...puntos: [Icono, string, string][]): HTMLElement {
-  return el('aside', { class: 'nota' }, el('span', { class: 'nota-etiqueta' }, etiqueta),
+/** Columna de ayuda junto a un formulario: título y una lista corta con íconos. */
+export function nota(titulo: string, ...puntos: [Icono, string, string][]): HTMLElement {
+  return el('aside', { class: 'nota' }, el('h2', { class: 'nota-titulo' }, titulo),
     el('ul', {}, ...puntos.map(([ic, fuerte, resto]) => el('li', {}, icono(ic), el('span', {}, el('strong', {}, fuerte), ' ', resto)))));
 }
+
+/** Sección de la columna lateral (Verificación, Documento, Compartir), separada por doble filete. */
+export const seccionLateral = (titulo: string, ...cuerpo: Hijo[]) => el('section', { class: 'lateral-sec' }, el('h2', {}, titulo), ...cuerpo);
 
 /** QR con el enlace escrito debajo, por si la cámara no lo lee. */
 export async function figuraQr(link: string, leyenda: string, clase = 'qr'): Promise<HTMLElement> {
