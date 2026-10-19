@@ -18,8 +18,9 @@ import shield from '@phosphor-icons/core/assets/regular/shield-check.svg?raw';
 import cube from '@phosphor-icons/core/assets/regular/cube.svg?raw';
 import qr from '@phosphor-icons/core/assets/regular/qr-code.svg?raw';
 import printer from '@phosphor-icons/core/assets/regular/printer.svg?raw';
+import caretLeft from '@phosphor-icons/core/assets/regular/caret-left.svg?raw';
 
-const ICONOS = { sealCheck, certificate, filePdf, download, linkedin, share, copy, search, arrowLeft, arrowRight, warning, checkCircle, xCircle, user, upload, shield, cube, qr, printer };
+const ICONOS = { sealCheck, certificate, filePdf, download, linkedin, share, copy, search, arrowLeft, arrowRight, warning, checkCircle, xCircle, user, upload, shield, cube, qr, printer, caretLeft };
 export type Icono = keyof typeof ICONOS;
 
 type Hijo = Node | string | null | undefined | false;

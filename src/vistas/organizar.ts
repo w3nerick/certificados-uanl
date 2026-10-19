@@ -26,9 +26,9 @@ export function vistaOrganizar(root: HTMLElement): void {
   const cuenta = el('div', { class: 'pila-s' });
   const emitirZona = el('div', { class: 'pila-s' }, el('p', { class: 'ayuda' }, 'Conecta tu cuenta de emisor para elegir los PDFs.'));
   const solicitudesZona = el('div', { class: 'pila-s' }, el('p', { class: 'ayuda' }, 'Aquí aparecen los estudiantes que pidieron una constancia.'));
-  const pasoCuenta = paso('01', 'Conectar', 'Tu cuenta de la Polkadot App con permiso de emisor.');
-  const pasoEmitir = paso('02', 'Emitir constancias', 'Sube los PDFs de la UANL y regístralos en la cadena.', emitirZona);
-  const pasoSolicitudes = paso('03', 'Aprobar solicitudes', 'Compara el nombre de la constancia con el usuario que la pide.', solicitudesZona);
+  const pasoCuenta = paso('1', 'Conectar', 'Tu cuenta de la Polkadot App con permiso de emisor.');
+  const pasoEmitir = paso('2', 'Emitir constancias', 'Sube los PDFs de la UANL y regístralos en la cadena.', emitirZona);
+  const pasoSolicitudes = paso('3', 'Aprobar solicitudes', 'Compara el nombre de la constancia con el usuario que la pide.', solicitudesZona);
   pasoEmitir.estado('bloqueado');
   pasoSolicitudes.estado('bloqueado');
 
@@ -215,7 +215,7 @@ export function vistaOrganizar(root: HTMLElement): void {
       : aviso('info', `Abre ${APP_DOTNS} en Polkadot Desktop para emitir y aprobar: firma con tu cuenta de la Polkadot App.`),
     cuenta,
   );
-  marco(root, 'otra',
+  marco(root, 'organizar',
     cabecera('Organizadores', 'Panel del organizador', 'Emite las constancias del evento y aprueba a quién le corresponde cada una.'),
     el('div', { class: 'pila-s' }, pasoCuenta, pasoEmitir, pasoSolicitudes),
   );

@@ -14,7 +14,7 @@ import { vistaMis } from './vistas/mis';
 import { vistaVerificar } from './vistas/verificar';
 import { vistaMuestra } from './vistas/muestra';
 import { vistaConstancia } from './vistas/constancia';
-import { marco } from './vistas/comun';
+import { marco, numerarVista } from './vistas/comun';
 import { aviso, boton } from './ui';
 
 const root = document.getElementById('app')!;
@@ -31,6 +31,7 @@ function perezosa(h: string, cargar: () => Promise<(root: HTMLElement) => unknow
 }
 
 function render() {
+  numerarVista();
   const h = location.hash || '#/';
   const reclamo = leerRutaReclamo(h);
   if (reclamo) return void vistaReclamar(root, reclamo.id, reclamo.codigo);

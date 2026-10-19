@@ -130,7 +130,7 @@ export function vistaDiagnostico(root: HTMLElement): void {
     btn('Copiar reporte', async () => { await navigator.clipboard?.writeText(reporte.value).catch(() => reporte.select()); }),
   );
 
-  marco(root, 'otra',
+  marco(root, 'diagnostico',
     cabecera('Soporte', 'Diagnóstico', 'Las pruebas corren solas. «Cuenta» abre un diálogo del wallet: apruébalo en el celular.'),
     lista,
     acciones,

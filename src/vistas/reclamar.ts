@@ -7,7 +7,7 @@
  * 3. El navegador firma (contrato, id, titular) con la llave del código y el
  *    relayer lo envía y paga. Nadie más puede cambiar el titular.
  */
-import { marco, hoja, ceja, fichaCuenta } from './comun';
+import { marco, hoja, ceja, migas, seccionLateral, fichaCuenta } from './comun';
 import { el, boton, aviso, cargando } from '../ui';
 import { certificado, contrato, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { firmarReclamo, llaveDeCodigo } from '../lib/reclamo';
@@ -107,15 +107,14 @@ export async function vistaReclamar(root: HTMLElement, id: bigint, codigo: strin
   }
 
   marco(root, 'otra',
-    el('div', { class: 'cert-layout' },
-      hoja(cert),
-      el('aside', { class: 'cert-lado' },
-        ceja(`Folio ${cert.id}`),
-        el('h2', {}, `Hola, ${cert.nombre.split(' ')[0]}`),
-        el('p', { class: 'muted' }, 'Este certificado está registrado en Polkadot. Reclámalo para que quede ligado a tu cuenta y puedas compartirlo. No necesitas saldo: la institución paga la transacción.'),
-        zona,
-        estado,
-      ),
+    migas('Reclamar certificado'),
+    el('div', { class: 'cabecera-texto' },
+      el('h1', {}, `Hola, ${cert.nombre.split(' ')[0]}`),
+      el('p', { class: 'lead' }, 'Este certificado está registrado en Polkadot. Reclámalo para que quede ligado a tu cuenta y puedas compartirlo. No necesitas saldo: la institución paga la transacción.'),
+    ),
+    el('div', { class: 'dos-columnas' },
+      el('div', { class: 'pila-s' }, hoja(cert), ceja(`Folio ${cert.id}`)),
+      el('aside', { class: 'lateral' }, seccionLateral('¿A qué cuenta va?', zona, estado)),
     ),
   );
   pedirCuenta();
