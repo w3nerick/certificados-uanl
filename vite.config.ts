@@ -58,11 +58,32 @@ function relayerLocal(): Plugin {
   };
 }
 
+/**
+ * El pdf.worker (1.2 MB) no cambia entre versiones de la app, y `pad` no vuelve a subir las partes que ya
+ * venían en el deploy anterior: heredan la caducidad de su primera subida a Bulletin (unos 14 días), aunque
+ * el deploy sea nuevo. Un comentario al principio cambia todos sus bloques y obliga a subirlo otra vez.
+ * Cambia la fecha cuando las partes del worker vayan a caducar antes de un evento (simula el deploy antes).
+ */
+const SUBIDA_WORKER = '2026-10-19';
+function workerFresco(): Plugin {
+  return {
+    name: 'worker-fresco',
+    apply: 'build',
+    generateBundle(_, bundle) {
+      for (const f of Object.values(bundle)) {
+        if (f.type !== 'asset' || !/pdf\.worker/.test(f.fileName)) continue;
+        const codigo = typeof f.source === 'string' ? f.source : new TextDecoder().decode(f.source);
+        f.source = `/* certificados-uanl: pdf.worker subido el ${SUBIDA_WORKER} */\n${codigo}`;
+      }
+    },
+  };
+}
+
 // base relativo: la app se sirve desde el hash de su contenido en Bulletin, no desde /.
 // El mismo dist/ se publica en Vercel (web de verificación y reclamo).
 export default defineConfig({
   base: './',
-  plugins: [relayerLocal()],
+  plugins: [relayerLocal(), workerFresco()],
   build: { target: 'es2022', chunkSizeWarningLimit: 1500 },
   define: {
     __SDK__: JSON.stringify(sdk),
