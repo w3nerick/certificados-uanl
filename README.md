@@ -3,7 +3,7 @@
 Constancias de la UANL registradas en Polkadot. El organizador las emite desde la Polkadot App,
 cada estudiante pide la suya por su nombre y cualquiera puede verificarla, también años después.
 
-- **App:** `certificados-uanl.dot` (Polkadot App y Polkadot Desktop) · https://certificados-uanl.dev-dot.li
+- **App:** `constancias-uanl.dot` (Polkadot App y Polkadot Desktop) · https://constancias-uanl.dev-dot.li
 - **Web permanente y relayer:** https://certificados-uanl.vercel.app
 - **Contrato:** `RegistroCertificados` en Asset Hub del Products Devnet (`0x5e122d6822e57b943ae964d0d345bd924ac44607`)
 
