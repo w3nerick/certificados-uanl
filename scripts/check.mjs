@@ -14,8 +14,8 @@ import config from '../polkadot-app-deploy.config.mjs';
 import { checkLabel } from './nombre.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const CODEC = 1;
-const PINNED = ['@parity/product-sdk-host', '@parity/product-sdk-signer', '@parity/product-sdk-statement-store'];
+const CODEC = 3;
+const PINNED = ['@parity/product-sdk-host', '@parity/product-sdk-signer', '@parity/product-sdk-statement-store', 'polkadot-api'];
 
 let fails = 0;
 const ok = (m) => console.log(`✓ ${m}`);

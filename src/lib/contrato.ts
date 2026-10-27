@@ -9,7 +9,8 @@
  * El cálculo automático de peso se queda corto y revierte con OutOfGas: por eso
  * se simula y se envía con margen explícito. Lo que sobra se devuelve.
  */
-import { Binary, type PolkadotClient, type PolkadotSigner } from 'polkadot-api';
+import { Binary, type PolkadotClient } from 'polkadot-api';
+import type { SignerTxCreator as PolkadotSigner } from 'polkadot-api/tx-creator';
 import { decodeErrorResult, decodeFunctionResult, encodeFunctionData, type Abi } from 'viem';
 
 export interface Contrato {
@@ -103,13 +104,12 @@ export function escribir(client: PolkadotClient, signer: PolkadotSigner, c: Cont
 
 interface TxEvent {
   type: string;
-  found?: boolean;
   ok?: boolean;
   txHash?: string;
   block?: { number: number };
   dispatchError?: unknown;
 }
-type Tx = { signSubmitAndWatch(s: PolkadotSigner): { subscribe(o: { next(e: TxEvent): void; error(e: unknown): void }): { unsubscribe(): void } } };
+type Tx = { createSubmitAndWatch(s: PolkadotSigner): { subscribe(o: { next(e: TxEvent): void; error(e: unknown): void }): { unsubscribe(): void } } };
 
 /**
  * Firma, envía y espera `finalized`. Corta antes si el primer bloque ya dice que falló.
@@ -117,10 +117,11 @@ type Tx = { signSubmitAndWatch(s: PolkadotSigner): { subscribe(o: { next(e: TxEv
  */
 function enviar(tx: Tx, signer: PolkadotSigner, onSigned?: () => void): Promise<{ block: number; txHash: string }> {
   return new Promise((resolve, reject) => {
-    const sub = tx.signSubmitAndWatch(signer).subscribe({
+    // polkadot-api 3: el firmante es un TxCreator; eventos created → broadcasted → inBestBlock → finalized
+    const sub = tx.createSubmitAndWatch(signer).subscribe({
       next: e => {
-        if (e.type === 'signed') onSigned?.();
-        if (e.type === 'txBestBlocksState' && e.found && e.ok === false) {
+        if (e.type === 'created') onSigned?.();
+        if (e.type === 'inBestBlock' && e.ok === false) {
           sub.unsubscribe();
           reject(new Error(describeDispatch(e.dispatchError)));
         }

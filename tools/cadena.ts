@@ -2,15 +2,17 @@
  * Utilidades de cadena para las herramientas de Node (emitir, relayer) y la función de Vercel.
  * Misma receta que la app: simular con ReviveApi.call, enviar con 2× el peso y 1.5× el depósito.
  */
-import { createClient, Binary, AccountId, type PolkadotClient, type PolkadotSigner } from 'polkadot-api';
+import { createClient, Binary, AccountId, type PolkadotClient } from 'polkadot-api';
 import { getWsProvider } from 'polkadot-api/ws';
-import { getPolkadotSigner } from 'polkadot-api/signer';
+import { getTxCreator } from 'polkadot-api/tx-creator';
 import { sr25519CreateDerive } from '@polkadot-labs/hdkd';
 import { entropyToMiniSecret, mnemonicToEntropy } from '@polkadot-labs/hdkd-helpers';
 import { decodeErrorResult, decodeFunctionResult, encodeFunctionData, type Abi, type Hex } from 'viem';
 import abiJson from '../src/abi/RegistroCertificados.json' with { type: 'json' };
 
 export const abi = abiJson as Abi;
+/** Firmante de polkadot-api 3 (TxCreator con nonce y extensiones comunes). */
+type PolkadotSigner = ReturnType<typeof getTxCreator>;
 export const RPC = ['wss://asset-hub-paseo-rpc.n.dwellir.com', 'wss://sys.turboflakes.io/asset-hub-paseo'];
 /** Cuenta pública de desarrollo: solo como origen de LECTURAS simuladas. Nunca firma. */
 export const READ_ORIGIN = '5DfhGyQdFobKM8NsWvEeAKk5EQQgYe9AydgJ7rMB6E1EqRzV';
@@ -28,7 +30,7 @@ export function cuentaDeSemilla(mnemonic: string): { address: string; signer: Po
   const words = mnemonic.trim().split(/\s+/).length;
   if (words < 12) throw new Error(`La frase semilla tiene ${words} palabras; se esperan 12 o 24.`);
   const pair = sr25519CreateDerive(entropyToMiniSecret(mnemonicToEntropy(mnemonic.trim())))('');
-  return { address: AccountId().dec(pair.publicKey), signer: getPolkadotSigner(pair.publicKey, 'Sr25519', pair.sign) };
+  return { address: AccountId().dec(pair.publicKey), signer: getTxCreator(pair.publicKey, 'Sr25519', pair.sign) };
 }
 
 type Weight = { ref_time: bigint; proof_size: bigint };
@@ -91,10 +93,10 @@ export function enviar(client: PolkadotClient, signer: PolkadotSigner, dest: Hex
   });
   const hasta = opts.hasta ?? 'final';
   return new Promise((resolve, reject) => {
-    const sub = tx.signSubmitAndWatch(signer, opts.nonce != null ? { nonce: opts.nonce } : undefined).subscribe({
-      next: (e: { type: string; found?: boolean; ok?: boolean; block?: { number: number }; txHash?: string; dispatchError?: unknown }) => {
+    const sub = tx.createSubmitAndWatch(signer, opts.nonce != null ? { nonce: opts.nonce } : undefined).subscribe({
+      next: (e: { type: string; ok?: boolean; block?: { number: number }; txHash?: string; dispatchError?: unknown }) => {
         const fallo = () => reject(new Error(`la transacción falló: ${JSON.stringify(e.dispatchError, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))}`));
-        if (e.type === 'txBestBlocksState' && e.found) {
+        if (e.type === 'inBestBlock') {
           if (e.ok === false) { sub.unsubscribe(); return fallo(); }
           if (hasta === 'bloque') { sub.unsubscribe(); return resolve({ bloque: e.block?.number ?? 0, tx: e.txHash ?? '' }); }
         }

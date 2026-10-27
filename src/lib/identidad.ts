@@ -15,7 +15,8 @@
  * NO uses `requestLogin()`: ninguna app que funciona en el devnet lo usa, y
  * esperar ese diálogo dejaba la UI cargando para siempre.
  */
-import { AccountId, type PolkadotClient, type PolkadotSigner } from 'polkadot-api';
+import { AccountId, type PolkadotClient } from 'polkadot-api';
+import type { SignerTxCreator as PolkadotSigner } from 'polkadot-api/tx-creator';
 import { getAccountsProvider } from '@parity/product-sdk-host';
 // Solo el tipo: el signer (con sus llaves, ~90 KB) se baja al conectar, no al abrir la app.
 import type { SignerManager } from '@parity/product-sdk-signer';
