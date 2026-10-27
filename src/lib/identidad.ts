@@ -15,7 +15,8 @@
  * NO uses `requestLogin()`: ninguna app que funciona en el devnet lo usa, y
  * esperar ese diálogo dejaba la UI cargando para siempre.
  */
-import { AccountId, type PolkadotClient, type PolkadotSigner } from 'polkadot-api';
+import { AccountId, type PolkadotClient } from 'polkadot-api';
+import type { SignerTxCreator as PolkadotSigner } from 'polkadot-api/tx-creator';
 import { getAccountsProvider } from '@parity/product-sdk-host';
 // Solo el tipo: el signer (con sus llaves, ~90 KB) se baja al conectar, no al abrir la app.
 import type { SignerManager } from '@parity/product-sdk-signer';
@@ -69,12 +70,15 @@ export async function conectar(): Promise<Sesion> {
     return sesion;
   }
 
-  const u = await withTimeout(manager.getUserId(), HOST_QUERY_MS).catch(() => null);
-  const username = u && u !== TIMED_OUT && u.ok ? u.value.primaryUsername || null : null;
+  // El host puede mostrar un cuadro para compartir la identidad (SDK 0.39): tiempo de diálogo, no de consulta
+  const u = await withTimeout(manager.getUserId(), HOST_SUBMIT_MS).catch((e: unknown) => ({ ok: false as const, error: e }));
+  const username = u !== TIMED_OUT && u.ok ? u.value.primaryUsername || null : null;
   let identidad: Sesion['identidad'] = null;
   let sinIdentidad: string | null = null;
   if (!username) {
-    sinIdentidad = 'la cuenta no tiene username';
+    sinIdentidad = u === TIMED_OUT ? 'el host no entregó el username a tiempo (¿aprobaste compartir tu identidad?)'
+      : !u.ok ? `el host no entregó el username: ${describeError(u.error)}`
+      : 'la cuenta no tiene username';
   } else {
     try {
       const owner = await usernameOwner(username);

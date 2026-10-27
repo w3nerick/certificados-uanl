@@ -43,7 +43,7 @@ try {
     if (mapeada) console.log('Ya estaba mapeada: nada que hacer.');
     else if (saldo < 10n ** 10n) console.log('Primero fondéala (al menos 1 PAS).');
     else if ((await preguntar('Escribe MAPEAR para firmar Revive.map_account: ')) === 'MAPEAR') {
-      const r = await client.getUnsafeApi().tx.Revive.map_account().signAndSubmit(cuenta.signer);
+      const r = await client.getUnsafeApi().tx.Revive.map_account().createAndSubmit(cuenta.signer);
       console.log(r.ok ? `Mapeada en el bloque ${r.block.number} ✓` : `Falló: ${JSON.stringify(r.dispatchError)}`);
     } else console.log('Cancelado.');
   }
