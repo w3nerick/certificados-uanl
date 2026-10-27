@@ -7,6 +7,8 @@
 // Córrelo en una terminal normal (Terminal.app, PowerShell): `pad` puede pedir que confirmes con Y,
 // y en terminales que mandan el proceso a segundo plano esa tecla nunca le llega.
 import { spawnSync } from 'node:child_process';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import config from '../polkadot-app-deploy.config.mjs';
 
 const extra = process.argv.slice(2);
@@ -17,5 +19,10 @@ const args = ['dist', config.domain, '--env', 'devnet', '--js-merkle', ...(conFi
 const shell = process.platform === 'win32';
 
 console.log(`\n$ pad ${args.join(' ')}\n`);
-const pad = spawnSync('pad', args, { stdio: 'inherit', shell });
+// pad firma la ficha con su worker, nunca con la sesión de `pad login`: con HOME aparte pad no ve la sesión y el
+// worker queda dueño del nombre, así cada deploy actualiza contenido, ficha y app.<nombre> sin firmas.
+// Precio: mientras sea del worker (cuenta pública de desarrollo) otro podría cambiarlo; después del evento:
+// `pad transfer app.<nombre> --env devnet` y luego `pad transfer <nombre> --env devnet`.
+const env = { ...process.env, HOME: join(homedir(), '.pad-worker'), PAD_ENV: 'devnet' };
+const pad = spawnSync('pad', args, { stdio: 'inherit', shell, env });
 process.exit(pad.status ?? 1);
