@@ -70,12 +70,15 @@ export async function conectar(): Promise<Sesion> {
     return sesion;
   }
 
-  const u = await withTimeout(manager.getUserId(), HOST_QUERY_MS).catch(() => null);
-  const username = u && u !== TIMED_OUT && u.ok ? u.value.primaryUsername || null : null;
+  // El host puede mostrar un cuadro para compartir la identidad (SDK 0.39): tiempo de diálogo, no de consulta
+  const u = await withTimeout(manager.getUserId(), HOST_SUBMIT_MS).catch((e: unknown) => ({ ok: false as const, error: e }));
+  const username = u !== TIMED_OUT && u.ok ? u.value.primaryUsername || null : null;
   let identidad: Sesion['identidad'] = null;
   let sinIdentidad: string | null = null;
   if (!username) {
-    sinIdentidad = 'la cuenta no tiene username';
+    sinIdentidad = u === TIMED_OUT ? 'el host no entregó el username a tiempo (¿aprobaste compartir tu identidad?)'
+      : !u.ok ? `el host no entregó el username: ${describeError(u.error)}`
+      : 'la cuenta no tiene username';
   } else {
     try {
       const owner = await usernameOwner(username);

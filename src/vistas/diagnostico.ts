@@ -62,9 +62,9 @@ export function vistaDiagnostico(root: HTMLElement): void {
 
   const automaticas = async () => {
     await prueba('Versiones', async () => ({
-      estado: __SDK__.codec === 1 ? 'ok' : 'aviso',
+      estado: __SDK__.codec === 3 ? 'ok' : 'aviso',
       detalle: `host ${__SDK__.host} · signer ${__SDK__.signer} · truapi ${__SDK__.truapi} · códec ${__SDK__.codec}`
-        + (__SDK__.codec === 1 ? '' : ' (Desktop 0.1.3 y la Polkadot App de sep 2026 hablan el códec 1)'),
+        + (__SDK__.codec === 3 ? '' : ' (desde el 22 oct 2026 la Polkadot App, Desktop 0.1.4 y dev-dot.li hablan el códec 3)'),
     }));
     const dentro = insideHost();
     await prueba('Contenedor', async () => ({ estado: dentro ? 'ok' : 'aviso', detalle: dentro ? 'dentro de un host' : 'navegador normal: las pruebas del host no aplican' }));
