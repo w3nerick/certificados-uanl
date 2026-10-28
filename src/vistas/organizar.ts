@@ -53,16 +53,19 @@ export function vistaOrganizar(root: HTMLElement): void {
     }
   };
 
+  // Polkadot Desktop 0.1.4 puede no tener el username en la sesión: entonces se escribe a mano
+  const usuario = el('input', { type: 'text', id: 'usuario-org', placeholder: 'tu-usuario.01', autocapitalize: 'off', spellcheck: 'false', 'aria-label': 'Tu username de la Polkadot App' }) as HTMLInputElement;
   const conectarBtn = boton('Conectar como organizador', {
     icono: 'user',
     clase: 'primario',
     onClick: async () => {
       cuenta.replaceChildren(esqueleto(2));
       try {
-        org = await conectarOrganizador();
+        org = await conectarOrganizador(usuario.value);
         pintarCuenta();
       } catch (e) {
-        cuenta.replaceChildren(aviso('mal', errorLegible(e)));
+        const pide = (e as { pideUsuario?: boolean }).pideUsuario;
+        cuenta.replaceChildren(aviso('mal', errorLegible(e)), ...(pide ? [el('label', { for: 'usuario-org' }, 'Tu username'), usuario] : []));
       }
     },
   });

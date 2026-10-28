@@ -46,8 +46,10 @@ let sesion: Sesion | null = null;
 
 export const sesionActual = () => sesion;
 
-/** Abre un diálogo del wallet: llámalo solo desde un gesto del usuario (un clic). */
-export async function conectar(): Promise<Sesion> {
+/** Abre un diálogo del wallet: llámalo solo desde un gesto del usuario (un clic).
+ * `usuarioEscrito`: username que escribió la persona, para cuando el Host no lo entrega
+ * (Polkadot Desktop 0.1.4: «No primary username for this session»). */
+export async function conectar(usuarioEscrito?: string): Promise<Sesion> {
   const inside = insideHost();
   if (inside && !(await waitForHost())) throw new Error(`No hay canal con el host. Abre ${APP_DOTNS} desde la Polkadot App.`);
 
@@ -75,10 +77,19 @@ export async function conectar(): Promise<Sesion> {
   const username = u !== TIMED_OUT && u.ok ? u.value.primaryUsername || null : null;
   let identidad: Sesion['identidad'] = null;
   let sinIdentidad: string | null = null;
+  const motivo = u === TIMED_OUT ? 'el host no entregó el username a tiempo (¿aprobaste compartir tu identidad?)'
+    : !u.ok ? `el host no entregó el username: ${describeError(u.error)}`
+    : 'la cuenta no tiene username';
+  // Sin username del Host: la identidad se busca entre las cuentas del wallet o por el username escrito.
+  // Firmar con ella no necesita el username, solo su llave pública (getLegacyAccountSigner).
+  const respaldo = username ? null : await identidadSinUsername(usuarioEscrito).catch((e: Error) => e.message);
+  if (respaldo && typeof respaldo === 'object') {
+    identidad = respaldo.identidad;
+    sesion = { app, username: respaldo.username, identidad, sinIdentidad: null, ensayo: false };
+    return sesion;
+  }
   if (!username) {
-    sinIdentidad = u === TIMED_OUT ? 'el host no entregó el username a tiempo (¿aprobaste compartir tu identidad?)'
-      : !u.ok ? `el host no entregó el username: ${describeError(u.error)}`
-      : 'la cuenta no tiene username';
+    sinIdentidad = typeof respaldo === 'string' ? `${motivo}; ${respaldo}` : motivo;
   } else {
     try {
       const owner = await usernameOwner(username);
@@ -95,6 +106,30 @@ export async function conectar(): Promise<Sesion> {
   }
   sesion = { app, username, identidad, sinIdentidad, ensayo: false };
   return sesion;
+}
+
+/**
+ * Identidad sin el username del Host. Primero el username escrito; si no hay, las cuentas del wallet
+ * (getLegacyAccounts) que tengan username en People chain. Null si no se encontró ninguna.
+ */
+async function identidadSinUsername(usuarioEscrito?: string): Promise<{ username: string; identidad: NonNullable<Sesion['identidad']> } | null> {
+  const ap = await withTimeout(getAccountsProvider(), HOST_QUERY_MS);
+  if (!ap || ap === TIMED_OUT) throw new Error('el host no entregó el proveedor de cuentas');
+  const escrito = usuarioEscrito?.trim().toLowerCase();
+  if (escrito) {
+    const owner = await usernameOwner(escrito);
+    if (!owner) throw new Error(`${escrito} no aparece en People chain`);
+    const publicKey = ss58.enc(owner);
+    return { username: escrito, identidad: { address: owner, publicKey, signer: ap.getLegacyAccountSigner({ publicKey, name: escrito }) } };
+  }
+  const cuentas = await withTimeout(ap.getLegacyAccounts().match(v => v, () => []), HOST_QUERY_MS);
+  if (cuentas === TIMED_OUT || cuentas.length === 0) return null;
+  for (const c of cuentas) {
+    const address = ss58.dec(c.publicKey);
+    const nombre = await usernameDe(address).catch(() => null);
+    if (nombre) return { username: nombre, identidad: { address, publicKey: c.publicKey, signer: ap.getLegacyAccountSigner({ publicKey: c.publicKey, name: nombre }) } };
+  }
+  return null;
 }
 
 /** Lee un storage de People chain con tope de tiempo. Lanza si no se pudo consultar. */
