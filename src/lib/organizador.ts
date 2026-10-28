@@ -27,9 +27,13 @@ export interface Organizador {
   mapeada: boolean;
 }
 
-export async function conectarOrganizador(): Promise<Organizador> {
-  const sesion = await conectar();
-  if (!sesion.identidad) throw new Error(`Para emitir hace falta tu cuenta con usuario de la Polkadot App (${sesion.sinIdentidad}).`);
+export async function conectarOrganizador(usuarioEscrito?: string): Promise<Organizador> {
+  const sesion = await conectar(usuarioEscrito);
+  if (!sesion.identidad) {
+    const e = new Error(`Para emitir hace falta tu cuenta con usuario de la Polkadot App (${sesion.sinIdentidad}). Escribe tu username y vuelve a conectar.`);
+    (e as Error & { pideUsuario?: boolean }).pideUsuario = true;
+    throw e;
+  }
   const ss58 = sesion.identidad.address;
   const chain = await assetHub();
   const h160 = await h160De(ss58);
