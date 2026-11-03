@@ -4,8 +4,9 @@
  * (dentro de la Polkadot App no hay impresión).
  */
 import { marco, cabecera } from './comun';
-import { el, icono, boton, aviso } from '../ui';
+import { el, boton, aviso } from '../ui';
 import { qrSvg } from '../lib/qr';
+import escudoFacpya from '../assets/logos/facpya.png?url';
 import { APP_DOTNS, IN_APP_LINK, DOTLI_URL } from '../lib/red';
 
 type Destino = 'app' | 'web';
@@ -73,8 +74,8 @@ export function vistaCartel(root: HTMLElement): void {
     el('article', { class: 'cartel', 'aria-label': 'Cartel para imprimir' }, el('div', { class: 'cartel-in' },
       el('p', { class: 'cartel-sup' }, 'Universidad Autónoma de Nuevo León'),
       el('div', { class: 'cartel-marca' },
-        el('span', { class: 'cartel-sello' }, icono('sealCheck')),
-        el('span', {}, el('span', {}, 'Certificados en Cadena'), el('span', {}, 'UANL × Polkadot')),
+        el('img', { class: 'cartel-escudo', src: escudoFacpya, alt: '', width: '132', height: '176' }),
+        el('span', {}, el('span', {}, 'Certificados en Cadena'), el('span', {}, 'Facultad de Contaduría Pública y Administración')),
       ),
       el('div', { class: 'cartel-menu' }),
       el('div', { class: 'cartel-cab' },

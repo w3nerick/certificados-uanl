@@ -3,10 +3,12 @@
  * - Banda azul UANL a la izquierda, barra gris con la universidad en versales, cabecera blanca con la
  *   marca, menú en barra roja y pie con franja roja.
  * - Rojo FACPYA #aa2c2b para acciones, enlaces y reglas; azul UANL #004a8f para la banda y el foco;
- *   marino #002144 y oro #fbc43d para la portada, el sello y la hoja del certificado.
- * - Archivo (en lugar de Benton Sans), Bitter (en lugar de Sanchez) y EB Garamond para las versales y
- *   la hoja: libres (OFL) y empaquetadas, solo el subconjunto latino (menos archivos en Bulletin).
- * Esquinas rectas en todo, salvo el sello. Detalle en docs/diseno.md.
+ *   marino #002144 y oro #fbc43d para la portada.
+ * - Logotipos oficiales (UANL, FACPYA, Polkadot) en la marca, la banda, la portada y antes del pie.
+ * - Los certificados se muestran siempre como su PDF original (.visor), nunca redibujados.
+ * - Archivo (en lugar de Benton Sans), Bitter (en lugar de Sanchez) y EB Garamond para las versales:
+ *   libres (OFL) y empaquetadas, solo el subconjunto latino (menos archivos en Bulletin).
+ * Esquinas rectas en todo. Detalle en docs/diseno.md.
  */
 @font-face {
   font-family: 'Archivo';
@@ -109,6 +111,9 @@ p { margin: 0; }
 @media (min-width: 1024px) {
   body { padding-left: var(--banda); }
   .banda-uanl { display: block; position: fixed; inset: 0 auto 0 0; z-index: 30; width: var(--banda); background: var(--azul); box-shadow: 3px 0 10px rgb(0 0 0 / 0.22); }
+  .banda-uanl a { display: block; padding-top: 150px; }
+  .banda-uanl img { display: block; width: var(--banda); height: auto; transition: opacity 0.15s; }
+  .banda-uanl a:hover img { opacity: 0.85; }
 }
 
 .saltar { position: absolute; left: 12px; top: -64px; z-index: 40; padding: 10px 14px; background: var(--marino); color: #fff; font-weight: 600; text-decoration: none; }
@@ -130,9 +135,11 @@ p { margin: 0; }
 .cab .contenedor { min-height: 106px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 14px; padding-bottom: 14px; }
 .marca { display: flex; align-items: center; gap: 16px; color: var(--texto); text-decoration: none; min-width: 0; }
 .marca:hover { color: var(--texto); }
-.marca-sello { width: 56px; height: 56px; flex: none; display: grid; place-items: center; background: var(--marino); color: var(--oro); }
-.marca-sello .ico { width: 30px; height: 30px; }
-.marca-texto { display: grid; padding: 2px 0 2px 16px; border-left: 1px solid var(--texto); font: 500 21px/1.1 var(--serif); letter-spacing: 0.01em; text-transform: uppercase; }
+.marca-escudo { width: auto; height: 76px; flex: none; }
+.marca-texto { display: grid; gap: 6px; padding: 4px 0 4px 16px; border-left: 1px solid var(--texto); }
+.marca-app { font: 500 24px/1.05 var(--serif); letter-spacing: 0.01em; text-transform: uppercase; }
+.marca-fac { font: 400 14.5px/1.3 var(--sans); color: var(--texto-2); }
+.marca-fac .corto { display: none; }
 .cab-der { display: grid; justify-items: end; gap: 12px; }
 .perfiles { display: flex; align-items: center; }
 .perfiles a { padding: 0 9px; font-size: 14px; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; color: var(--texto); text-decoration: none; }
@@ -143,9 +150,12 @@ p { margin: 0; }
   .cab .contenedor { min-height: 0; padding-top: 14px; padding-bottom: 14px; }
   .cab-der { display: none; }
   .marca { gap: 12px; }
-  .marca-sello { width: 44px; height: 44px; }
-  .marca-sello .ico { width: 24px; height: 24px; }
-  .marca-texto { padding-left: 12px; font-size: 17px; }
+  .marca-escudo { height: 52px; }
+  .marca-texto { gap: 3px; padding-left: 12px; }
+  .marca-app { font-size: 18px; }
+  .marca-fac { font-size: 12.5px; letter-spacing: 0.02em; }
+  .marca-fac .largo { display: none; }
+  .marca-fac .corto { display: inline; }
 }
 
 /* ---------- Menú en barra roja ---------- */
@@ -222,18 +232,37 @@ main { flex: 1; width: 100%; }
 /* Zonas que se llenan al tocar un botón (enlace manual, QR): vacías no dejan hueco */
 .lateral-sec > div:empty { display: none; }
 
+/* ---------- Logotipos antes del pie (como el «prefooter» de los sitios de facultades) ---------- */
+.pre-pie { background: #fff; border-top: 1px solid var(--linea); }
+.pre-pie-fila { display: flex; align-items: center; justify-content: center; gap: 0; padding-top: 36px; padding-bottom: 36px; }
+.pre-pie-fila > * { padding: 0 40px; }
+.pre-pie-fila > * + * { border-left: 1px solid var(--linea); }
+.logo-uanl { height: 64px; width: auto; }
+.logo-facpya { height: 76px; width: auto; box-sizing: content-box; }
+.logo-polkadot { display: inline-flex; align-items: center; gap: 10px; font: 600 25px/1 var(--sans); letter-spacing: -0.02em; color: #111; }
+.logo-polkadot img { width: 34px; height: 34px; }
+@media (max-width: 640px) {
+  .pre-pie-fila { flex-wrap: wrap; gap: 24px 0; padding-top: 28px; padding-bottom: 28px; }
+  .pre-pie-fila > * { padding: 0 20px; }
+  .pre-pie-fila > .logo-uanl { flex-basis: 100%; height: 52px; object-fit: contain; border: 0; padding: 0; }
+  .pre-pie-fila > .logo-facpya { height: 60px; border-left: 0; }
+  .logo-polkadot { font-size: 21px; }
+  .logo-polkadot img { width: 28px; height: 28px; }
+}
+
 /* ---------- Pie ---------- */
 .pie-cuerpo { background: var(--gris); border-top: 6px solid var(--rojo); padding: 48px 0 44px; }
 .pie-rejilla { display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr; gap: 32px; }
-.pie .marca-sello { width: 44px; height: 44px; }
-.pie .marca-sello .ico { width: 24px; height: 24px; }
-.pie .marca-texto { font-size: 17px; }
+.pie .marca-escudo { height: 60px; }
+.pie .marca-app { font-size: 19px; }
+.pie .marca-fac { font-size: 13px; }
 .pie-marca p { margin-top: 16px; font-size: 14.5px; color: var(--texto-2); max-width: 36ch; }
 .pie h2 { margin-bottom: 12px; font: 600 15px/1.3 var(--sans); }
 .pie ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .pie ul a { font-size: 15px; text-decoration: none; }
 .pie ul a:hover { text-decoration: underline; }
 .pie-legal { background: var(--rojo); color: #fff; font-size: 14px; letter-spacing: 0.02em; }
+.pie-leyenda { font-weight: 600; }
 .pie-legal .contenedor { min-height: 46px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 20px; padding-top: 11px; padding-bottom: max(11px, env(safe-area-inset-bottom)); }
 @media (max-width: 767px) {
   .pie-cuerpo { padding: 36px 0 32px; }
@@ -372,11 +401,20 @@ input:disabled { background: var(--gris-2); border-color: var(--linea); color: v
 .portada-texto { display: grid; gap: 24px; }
 .portada h1 { max-width: 15ch; font: 800 clamp(2.3rem, 1.6rem + 2.6vw, 3.5rem)/1.08 var(--slab); color: #fff; }
 .portada .lead { max-width: 44ch; font-size: 1.15rem; color: rgb(255 255 255 / 0.86); }
-.portada-hoja { display: grid; gap: 14px; color: #fff; text-decoration: none; }
-.portada-hoja .hoja { box-shadow: 0 24px 60px rgb(0 0 0 / 0.38); transition: transform 0.25s var(--ease); }
-.portada-hoja:hover { color: #fff; }
-.portada-hoja:hover .hoja { transform: translateY(-4px); }
-.portada-hoja > p { text-align: right; font-size: 14px; color: rgb(255 255 255 / 0.78); }
+.portada-marcas { margin: 0; display: grid; gap: 32px; padding: 44px 44px 36px; border: 1px solid rgb(255 255 255 / 0.2); border-top: 4px solid var(--oro); background: rgb(255 255 255 / 0.03); }
+.pm-logos { display: grid; justify-items: center; gap: 22px; }
+.pm-uanl { width: min(100%, 330px); height: auto; }
+.pm-x { font: 400 26px/1 var(--serif); color: var(--oro); }
+.pm-polkadot { display: inline-flex; align-items: center; gap: 12px; font: 600 34px/1 var(--sans); letter-spacing: -0.02em; color: #fff; }
+.pm-polkadot img { width: 44px; height: 44px; }
+.portada-marcas figcaption { display: grid; gap: 4px; padding-top: 22px; border-top: 1px solid rgb(255 255 255 / 0.2); text-align: center; font-size: 15px; color: rgb(255 255 255 / 0.8); }
+.portada-marcas figcaption strong { font: 700 13.5px/1.4 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--oro); }
+@media (max-width: 520px) {
+  .portada-marcas { padding: 32px 22px 26px; gap: 26px; }
+  .pm-uanl { width: min(100%, 250px); }
+  .pm-polkadot { font-size: 28px; }
+  .pm-polkadot img { width: 36px; height: 36px; }
+}
 .regla { height: 6px; background: var(--rojo); }
 @media (max-width: 900px) {
   .portada-rejilla { grid-template-columns: minmax(0, 1fr); gap: 36px; padding-top: 40px; padding-bottom: 40px; }
@@ -416,12 +454,15 @@ input:disabled { background: var(--gris-2); border-color: var(--linea); color: v
 /* ---------- Página del certificado ---------- */
 .cert-titulo { display: grid; gap: 10px; }
 .cert-titulo h1 { overflow-wrap: anywhere; }
-.pestanas { display: flex; border-bottom: 1px solid var(--linea); }
-.pestanas button { margin-bottom: -1px; padding: 12px 18px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--texto-3); font: 600 15px/1 var(--sans); cursor: pointer; transition: color 0.15s, border-color 0.15s; }
-.pestanas button:hover { color: var(--texto); }
-.pestanas button[aria-selected='true'] { color: var(--texto); border-bottom-color: var(--rojo); }
-.pestanas button:focus-visible { outline-offset: -2px; }
-.lienzo { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--linea); box-shadow: 0 12px 32px rgb(0 33 68 / 0.12); }
+/* El PDF original del certificado (16:9 hasta que se dibuja; luego, la proporción del documento) */
+.visor { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; background: #fff; border: 1px solid var(--linea); box-shadow: 0 12px 32px rgb(0 33 68 / 0.12); }
+.visor canvas { display: block; width: 100%; height: 100%; }
+.visor.bajando { background: linear-gradient(90deg, var(--gris-2) 0%, #faf9f6 50%, var(--gris-2) 100%); background-size: 200% 100%; animation: brillo 1.4s linear infinite; }
+.visor-estado { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 16px; text-align: center; font-size: 15px; color: var(--texto-2); }
+.visor-estado.falla { background: var(--gris); }
+.visor-estado.falla .ico { width: 28px; height: 28px; color: var(--texto-3); }
+.visor.compacto .visor-estado { font-size: 13px; gap: 6px; }
+.visor.revocado::after { content: 'REVOCADO'; position: absolute; inset: 0; display: grid; place-items: center; font: 600 clamp(28px, 9vw, 88px)/1 var(--serif); letter-spacing: 0.12em; color: rgb(155 28 28 / 0.5); text-shadow: 0 0 18px #fff; transform: rotate(-12deg); pointer-events: none; }
 
 .checks { list-style: none; margin: 0; padding: 0; display: grid; }
 .checks li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--linea); font-weight: 600; }
@@ -440,52 +481,17 @@ input:disabled { background: var(--gris-2); border-color: var(--linea); color: v
 .huella span:first-child { font-size: 0.85rem; font-weight: 600; color: var(--texto-3); }
 .huella span:last-child { font: 400 11.5px/1.6 var(--mono); color: var(--texto-3); overflow-wrap: anywhere; }
 
-/* Resultado de búsqueda en «Reclamar constancia»: hoja + datos + botón */
+/* Resultado de búsqueda en «Reclamar constancia»: PDF + datos + botón */
 .resultado { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: center; padding: 20px; background: #fff; border: 1px solid var(--linea); }
-.resultado .hoja { box-shadow: 0 6px 18px rgb(0 33 68 / 0.12); }
+.resultado .visor { box-shadow: 0 6px 18px rgb(0 33 68 / 0.12); }
 .resultado-lado { display: grid; gap: 10px; }
 @media (max-width: 640px) { .resultado { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 16px; } .resultado .acciones .btn { width: 100%; } }
 
-/* ---------- La hoja del certificado (papel blanco con banda UANL) ---------- */
-.hoja {
-  --t: #1c1917;
-  --gris-hoja: #57534e;
-  container-type: inline-size;
-  position: relative;
-  aspect-ratio: 1.414 / 1;
-  width: 100%;
-  background: #fff;
-  color: var(--t);
-  overflow: hidden;
-  border: 1px solid var(--linea);
-  box-shadow: 0 12px 32px rgb(0 33 68 / 0.14);
-}
-/* El padding va en un hijo: cqi en el propio contenedor mide al ancestro, no a la hoja. */
-.hoja-in { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; padding: 0 7cqi 4.5cqi; text-align: center; }
-.hoja::before { content: ''; position: absolute; inset: 2.2cqi; border: 1px solid #d6d3d1; pointer-events: none; }
-.hoja-banda { margin: 0 -7cqi; height: 3.2cqi; background: var(--marino); border-bottom: 0.45cqi solid var(--oro); }
-.hoja-inst { margin-top: 3.6cqi; font: 500 1.75cqi/1.3 var(--serif); letter-spacing: 0.28em; text-transform: uppercase; color: var(--marino); }
-.hoja-con { margin-top: 0.8cqi; font: 500 1.2cqi/1 var(--sans); letter-spacing: 0.24em; text-transform: uppercase; color: var(--gris-hoja); }
-.hoja-cuerpo { align-self: center; display: grid; gap: 1.4cqi; justify-items: center; }
-.hoja-titulo { font: 500 5cqi/1 var(--serif); color: var(--marino); }
-.hoja-se { font: 400 1.5cqi/1.4 var(--sans); color: var(--gris-hoja); }
-.hoja-nombre { max-width: 80cqi; font: 500 6.4cqi/1.05 var(--serif); overflow-wrap: anywhere; }
-.hoja-linea { width: 26cqi; height: 1px; background: #d6d3d1; }
-.hoja-programa { max-width: 70cqi; font: 600 2cqi/1.35 var(--sans); }
-.hoja-fecha { font: 400 1.5cqi/1.4 var(--sans); color: var(--gris-hoja); }
-.hoja-pie { display: flex; justify-content: space-between; align-items: end; gap: 2cqi; text-align: left; }
-.hoja-folio { font: 400 1.15cqi/1.5 var(--mono); color: var(--gris-hoja); }
-.sello { display: flex; align-items: center; gap: 1.2cqi; text-align: left; font: 500 1.15cqi/1.3 var(--sans); color: var(--marino); }
-.sello-disco { width: 7cqi; height: 7cqi; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe08a, var(--oro) 55%, #d9a21c); color: var(--marino); box-shadow: inset 0 0 0 0.35cqi rgb(255 255 255 / 0.45), 0 0.4cqi 1.2cqi rgb(0 33 68 / 0.25); }
-.sello-disco .ico { width: 3.6cqi; height: 3.6cqi; }
-.hoja.revocada::after { content: 'REVOCADO'; position: absolute; inset: 0; display: grid; place-items: center; font: 600 11cqi/1 var(--serif); color: rgb(155 28 28 / 0.3); transform: rotate(-14deg); pointer-events: none; }
-.hoja.muestra::after { content: 'MUESTRA'; position: absolute; inset: 0; display: grid; place-items: center; font: 600 12cqi/1 var(--serif); letter-spacing: 0.2em; color: rgb(0 33 68 / 0.07); transform: rotate(-14deg); pointer-events: none; }
-
 /* ---------- Listas de certificados (como las tarjetas de noticias) ---------- */
 .lista-cert { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px 24px; }
-.lista-cert a { display: grid; gap: 12px; color: inherit; text-decoration: none; }
-.lista-cert .hoja { transition: transform 0.2s var(--ease), box-shadow 0.2s; }
-.lista-cert a:hover .hoja { transform: translateY(-3px); box-shadow: 0 18px 40px rgb(0 33 68 / 0.18); }
+.lista-cert a { display: grid; align-content: start; gap: 12px; color: inherit; text-decoration: none; }
+.lista-cert .visor { transition: transform 0.2s var(--ease), box-shadow 0.2s; }
+.lista-cert a:hover .visor { transform: translateY(-3px); box-shadow: 0 18px 40px rgb(0 33 68 / 0.18); }
 .lista-cert-pie { display: grid; gap: 4px; }
 .lista-cert-pie span:first-child { font-size: 13.5px; color: var(--texto-3); }
 .lista-cert-pie span:last-child { font-size: 1.1rem; line-height: 1.35; color: var(--rojo); }
@@ -527,9 +533,9 @@ input:disabled { background: var(--gris-2); border-color: var(--linea); color: v
 .cartel-in { position: absolute; inset: 0; display: grid; grid-template-rows: auto auto auto auto 1fr auto; }
 .cartel-sup { padding: 2.2cqi 8cqi; background: var(--gris); font: 500 2.6cqi/1.2 var(--serif); letter-spacing: 0.02em; text-transform: uppercase; }
 .cartel-marca { display: flex; align-items: center; gap: 2.6cqi; padding: 3.4cqi 8cqi; }
-.cartel-sello { width: 8.4cqi; height: 8.4cqi; flex: none; display: grid; place-items: center; background: var(--marino); color: var(--oro); }
-.cartel-sello .ico { width: 4.8cqi; height: 4.8cqi; }
-.cartel-marca > span:last-child { display: grid; padding-left: 2.6cqi; border-left: 0.2cqi solid var(--texto); font: 500 3.2cqi/1.1 var(--serif); text-transform: uppercase; }
+.cartel-escudo { height: 11cqi; width: auto; flex: none; }
+.cartel-marca > span:last-child { display: grid; gap: 0.8cqi; padding-left: 2.6cqi; border-left: 0.2cqi solid var(--texto); font: 500 3.4cqi/1.1 var(--serif); text-transform: uppercase; }
+.cartel-marca > span:last-child > span:last-child { font: 400 2.1cqi/1.3 var(--sans); text-transform: none; color: var(--texto-2); }
 .cartel-menu { height: 2.6cqi; background: var(--rojo); }
 .cartel-cab { display: grid; gap: 2cqi; padding: 6cqi 8cqi 0; }
 .cartel-ceja { width: fit-content; padding: 0.6cqi 1.6cqi; background: var(--texto); color: #fff; font: 500 1.9cqi/1.3 var(--sans); letter-spacing: 0.03em; }

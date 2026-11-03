@@ -2,22 +2,54 @@
  * Marco de página con el lenguaje de los sitios de facultades de la UANL (como facpya.uanl.mx): barra
  * gris con la universidad, cabecera blanca con la marca, menú en barra roja, banda azul a la izquierda
  * y pie. Las vistas interiores van en una lámina gris montada sobre un banner, con «Regresar» y migas.
- * Aquí también viven las piezas compartidas (pasos, nota, ficha de cuenta) y la hoja del certificado.
+ * Aquí también viven las piezas compartidas (pasos, nota, ficha de cuenta).
+ *
+ * Logotipos oficiales (src/assets/logos, tomados de facpya.uanl.mx y del kit de Polkadot México): el
+ * escudo de la FACPYA en la marca, la pestaña «UANL.MX» en la banda azul y, antes del pie, la fila
+ * UANL · FACPYA · Polkadot, como el «prefooter» de los sitios de facultades.
  */
-import { el, icono, corta, fechaLarga, aviso, type Icono } from '../ui';
-import type { Certificado } from '../lib/registro';
+import { el, icono, aviso, type Icono } from '../ui';
 import type { Destino } from '../lib/cuenta';
 import { registroListo } from '../lib/registro';
 import { qrSvg } from '../lib/qr';
+import { abrirFuera } from '../lib/permisos';
+import escudoFacpya from '../assets/logos/facpya.png?url';
+import logoUanl from '../assets/logos/uanl.png?url';
+import pestanaUanl from '../assets/logos/uanl-mx.png?url';
+import iconoPolkadot from '../assets/logos/polkadot.svg?url';
 
-export type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'muestra' | 'organizar' | 'cartel' | 'diagnostico' | 'otra';
+const PORTAL_UANL = 'https://www.uanl.mx';
+
+export type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'organizar' | 'cartel' | 'diagnostico' | 'otra';
 type Hijo = Node | string | null | undefined | false;
 
-/** Sello de la app + nombre en versales, separados por un filete (como el escudo y el nombre de cada facultad). */
+/** Escudo de la FACPYA + nombre, separados por un filete (como el escudo y el nombre de cada facultad). */
 const marca = () => el('a', { class: 'marca', href: '#/' },
-  el('span', { class: 'marca-sello', 'aria-hidden': 'true' }, icono('sealCheck')),
-  el('span', { class: 'marca-texto' }, el('span', {}, 'Certificados en Cadena'), el('span', {}, 'UANL × Polkadot')),
+  el('img', { class: 'marca-escudo', src: escudoFacpya, alt: '', width: '132', height: '176' }),
+  el('span', { class: 'marca-texto' },
+    el('span', { class: 'marca-app' }, 'Certificados en Cadena'),
+    el('span', { class: 'marca-fac' }, el('span', { class: 'largo' }, 'Facultad de Contaduría Pública y Administración'), el('span', { class: 'corto' }, 'FACPYA · UANL')),
+  ),
 );
+
+/** Enlace que sale de la app: dentro de la Polkadot App lo abre el host; en el navegador, otra pestaña. */
+function enlaceFuera(href: string, ...hijos: (Node | string)[]): HTMLElement {
+  const a = el('a', { href, target: '_blank', rel: 'noopener' }, ...hijos);
+  a.onclick = e => { e.preventDefault(); void abrirFuera(href); };
+  return a;
+}
+
+/** Banda azul de la izquierda con la pestaña «UANL.MX» que lleva al portal, como en los sitios de facultades. */
+const banda = () => el('div', { class: 'banda-uanl' },
+  enlaceFuera(PORTAL_UANL, el('img', { src: pestanaUanl, alt: 'Ir al portal oficial de la UANL', width: '45', height: '280' })));
+
+/** Fila de logotipos antes del pie: UANL, FACPYA y Polkadot. */
+const logos = () => el('section', { class: 'pre-pie', 'aria-label': 'Instituciones participantes' },
+  el('div', { class: 'contenedor pre-pie-fila' },
+    el('img', { class: 'logo-uanl', src: logoUanl, alt: 'Universidad Autónoma de Nuevo León', width: '356', height: '150' }),
+    el('img', { class: 'logo-facpya', src: escudoFacpya, alt: 'Facultad de Contaduría Pública y Administración', width: '132', height: '176' }),
+    el('span', { class: 'logo-polkadot' }, el('img', { src: iconoPolkadot, alt: '', width: '256', height: '256' }), el('span', {}, 'Polkadot')),
+  ));
 
 /**
  * Cada vista queda numerada en el historial. «Regresar» vuelve a la anterior si se llegó desde la
@@ -99,12 +131,12 @@ function pie(): HTMLElement {
     el('div', { class: 'pie-cuerpo' }, el('div', { class: 'contenedor pie-rejilla' },
       el('div', { class: 'pie-marca' }, marca(), el('p', {}, 'Constancias de la Universidad Autónoma de Nuevo León registradas en Polkadot Asset Hub. Cualquiera puede comprobarlas.')),
       col('Estudiantes', ['#/constancia', 'Reclamar constancia'], ['#/mis', 'Mis certificados']),
-      col('Verificar', ['#/verificar', 'Verificar un PDF'], ['#/muestra', 'Ver un ejemplo']),
+      col('Verificar', ['#/verificar', 'Verificar un PDF']),
       col('Organizadores', ['#/organizar', 'Panel del organizador'], ['#/cartel', 'Cartel con QR'], ['#/diagnostico', 'Diagnóstico']),
     )),
     el('div', { class: 'pie-legal' }, el('div', { class: 'contenedor' },
-      el('span', {}, 'Universidad Autónoma de Nuevo León · Polkadot México'),
-      el('span', {}, 'Registrado en Polkadot'),
+      el('span', { class: 'pie-leyenda' }, 'Aplicación con fines educativos'),
+      el('span', {}, 'Universidad Autónoma de Nuevo León × Polkadot México'),
     )),
   );
 }
@@ -134,7 +166,7 @@ export function marco(root: HTMLElement, actual: Seccion, ...contenido: Hijo[]):
     destino.setAttribute('tabindex', '-1');
     destino.focus();
   };
-  root.replaceChildren(saltar, el('div', { class: 'banda-uanl', 'aria-hidden': 'true' }), ...cabeceraSitio(actual), main, pie());
+  root.replaceChildren(saltar, banda(), ...cabeceraSitio(actual), main, logos(), pie());
   window.scrollTo(0, 0);
   anunciar(main);
 }
@@ -206,30 +238,4 @@ export function fichaCuenta(d: Destino, ...extra: Hijo[]): HTMLElement {
   return el('div', { class: 'ficha-cuenta' }, icono('user'),
     el('div', {}, el('strong', {}, d.username ?? 'Cuenta sin usuario'), el('span', { class: 'mono muted' }, `${dir.slice(0, 8)}…${dir.slice(-6)}`)),
     ...extra);
-}
-
-/** La hoja tipo diploma, dibujada solo con datos on-chain (se ve aunque IPFS falle). */
-export function hoja(c: Certificado): HTMLElement {
-  return el('article', { class: `hoja${c.revocado ? ' revocada' : ''}`, 'aria-label': `Certificado de ${c.nombre}` }, el('div', { class: 'hoja-in' },
-    el('div', { class: 'hoja-banda' }),
-    el('div', {},
-      el('p', { class: 'hoja-inst' }, c.institucion),
-      el('p', { class: 'hoja-con' }, 'Registrado en Polkadot'),
-    ),
-    el('div', { class: 'hoja-cuerpo' },
-      el('p', { class: 'hoja-titulo' }, 'Certificado'),
-      el('p', { class: 'hoja-se' }, 'Se otorga a'),
-      el('p', { class: 'hoja-nombre' }, c.nombre),
-      el('span', { class: 'hoja-linea' }),
-      el('p', { class: 'hoja-programa' }, c.programa),
-      el('p', { class: 'hoja-fecha' }, fechaLarga(c.fecha)),
-    ),
-    el('div', { class: 'hoja-pie' },
-      el('p', { class: 'hoja-folio' }, `Folio ${c.id}`, el('br'), `PDF ${corta(c.sha256Pdf, 8)}`),
-      el('div', { class: 'sello' },
-        el('span', { class: 'sello-disco' }, icono('sealCheck')),
-        el('span', {}, 'Verificado en', el('br'), `Asset Hub · bloque ${c.bloque}`),
-      ),
-    ),
-  ));
 }
