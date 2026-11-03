@@ -2,10 +2,9 @@
  * #/: qué es y a dónde ir. Sigue la portada de las facultades de la UANL: carrusel con título
  * en slab y regla roja, «Próximos eventos» en franja gris y «Repositorio institucional» en roja.
  */
-import { marco } from './comun';
+import { marco, logoPolkadot } from './comun';
 import { el, boton } from '../ui';
 import logoUanlBlanco from '../assets/logos/uanl-blanco.png?url';
-import logoPolkadotBlanco from '../assets/logos/polkadot-blanco.png?url';
 
 /** Un paso con el bloque de fecha de «Próximos eventos»: el número grande y el verbo en la franja roja. */
 const pasoInicio = (num: string, verbo: string, titulo: string, href: string, texto: string) =>
@@ -33,7 +32,7 @@ export function vistaInicio(root: HTMLElement): void {
           el('div', { class: 'pm-logos' },
             el('img', { class: 'pm-uanl', src: logoUanlBlanco, alt: 'Universidad Autónoma de Nuevo León', width: '570', height: '240' }),
             el('span', { class: 'pm-x', 'aria-hidden': 'true' }, '×'),
-            el('img', { class: 'pm-polkadot', src: logoPolkadotBlanco, alt: 'Polkadot', width: '597', height: '128' }),
+            logoPolkadot(true, 'pm-polkadot'),
           ),
           el('figcaption', {},
             el('strong', {}, 'Bootcamp + Hackathon'),

@@ -6,7 +6,8 @@
  *
  * Logotipos oficiales (src/assets/logos, tomados de facpya.uanl.mx y del kit de Polkadot México): el
  * escudo de la FACPYA en la marca y, antes del pie, la fila
- * UANL · FACPYA · Polkadot (logotipo oficial completo, no escrito), como el «prefooter» de los sitios de facultades.
+ * UANL · FACPYA · Polkadot, como el «prefooter» de los sitios de facultades. Polkadot va como en polkadot.com
+ * (marca «Second Age»): su ícono y la palabra en DM Serif Display.
  */
 import { el, icono, aviso, type Icono } from '../ui';
 import type { Destino } from '../lib/cuenta';
@@ -14,7 +15,8 @@ import { registroListo } from '../lib/registro';
 import { qrSvg } from '../lib/qr';
 import escudoFacpya from '../assets/logos/facpya.png?url';
 import logoUanl from '../assets/logos/uanl.png?url';
-import logoPolkadot from '../assets/logos/polkadot.png?url';
+import iconoPolkadot from '../assets/logos/polkadot.svg?url';
+import iconoPolkadotClaro from '../assets/logos/polkadot-claro.svg?url';
 
 
 export type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'organizar' | 'cartel' | 'diagnostico' | 'otra';
@@ -29,12 +31,23 @@ const marca = () => el('a', { class: 'marca', href: '#/' },
   ),
 );
 
+/**
+ * Logotipo de Polkadot como lo arma polkadot.com: el ícono de la marca «Second Age» (kit de
+ * github.com/Tomen/polkadot-second-age-brand-kit) y «Polkadot» en DM Serif Display. `claro` = sobre fondo
+ * oscuro (ícono gris #E5E7EB, texto gris 100).
+ */
+export function logoPolkadot(claro = false, clase = ''): HTMLElement {
+  return el('span', { class: `polkadot-logo${claro ? ' claro' : ''}${clase ? ` ${clase}` : ''}`, role: 'img', 'aria-label': 'Polkadot' },
+    el('img', { src: claro ? iconoPolkadotClaro : iconoPolkadot, alt: '', width: '256', height: '256' }),
+    el('span', { 'aria-hidden': 'true' }, 'Polkadot'));
+}
+
 /** Fila de logotipos antes del pie: UANL, FACPYA y Polkadot. */
 const logos = () => el('section', { class: 'pre-pie', 'aria-label': 'Instituciones participantes' },
   el('div', { class: 'contenedor pre-pie-fila' },
     el('img', { class: 'logo-uanl', src: logoUanl, alt: 'Universidad Autónoma de Nuevo León', width: '356', height: '150' }),
     el('img', { class: 'logo-facpya', src: escudoFacpya, alt: 'Facultad de Contaduría Pública y Administración', width: '132', height: '176' }),
-    el('img', { class: 'logo-polkadot', src: logoPolkadot, alt: 'Polkadot', width: '446', height: '96' }),
+    logoPolkadot(false, 'logo-polkadot'),
   ));
 
 /**

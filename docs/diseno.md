@@ -21,11 +21,14 @@ Archivos en `src/assets/logos/`, optimizados con `pngquant`:
 | --- | --- | --- |
 | `facpya.png` | Escudo de la FACPYA (ícono del sitio facpya.uanl.mx, 512 px) | Marca de la cabecera y del pie, fila de logotipos, cartel |
 | `uanl.png` / `uanl-blanco.png` | Logotipo UANL del «prefooter» de facpya.uanl.mx (gris); la versión blanca es el mismo archivo recoloreado | Fila de logotipos / portada sobre marino |
-| `polkadot.png` / `polkadot-blanco.png` | Logotipo oficial de Polkadot (rosa y negro / rosa y blanco) del kit de marca de Polkadot México, el mismo de las constancias | Fila de logotipos / portada |
+| `polkadot.svg` / `polkadot-claro.svg` | Ícono de Polkadot «Second Age» (casi negro #0F0F0F / gris #E5E7EB) del kit [Tomen/polkadot-second-age-brand-kit](https://github.com/Tomen/polkadot-second-age-brand-kit) | Fila de logotipos / portada |
 
-No se redibujan ni se recolorean salvo la versión blanca del logotipo UANL. «Polkadot» nunca se escribe con
-las fuentes de la app junto a un ícono: siempre el logotipo oficial completo (su wordmark es parte del
-archivo).
+No se redibujan ni se recolorean salvo la versión blanca del logotipo UANL.
+
+**Logotipo de Polkadot** (`logoPolkadot()` en `comun.ts`): igual que en la cabecera de polkadot.com, el ícono
+y la palabra «Polkadot» en **DM Serif Display** 400 (tipografía de la marca, empaquetada solo para esto), el
+ícono a 1.2 × el tamaño de la letra y separados media letra. Texto #1C1917 sobre claro y #F5F5F4 sobre oscuro.
+No usar el logotipo viejo (puntos rosas con la palabra en cursiva).
 
 ## Colores
 

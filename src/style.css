@@ -28,6 +28,15 @@
     url('../node_modules/@fontsource-variable/bitter/files/bitter-latin-wght-normal.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
+/* DM Serif Display: la tipografía del logotipo de Polkadot en polkadot.com (solo para «Polkadot») */
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('../node_modules/@fontsource/dm-serif-display/files/dm-serif-display-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 @font-face {
   font-family: 'EB Garamond';
   font-style: normal;
@@ -236,13 +245,17 @@ main { flex: 1; width: 100%; }
 .pre-pie-fila > * + * { border-left: 1px solid var(--linea); }
 .logo-uanl { height: 64px; width: auto; box-sizing: content-box; padding-block: 6px; }
 .logo-facpya { height: 76px; width: auto; box-sizing: content-box; }
-.logo-polkadot { height: 40px; width: auto; box-sizing: content-box; padding-block: 18px; }
+/* Logotipo de Polkadot (ícono + palabra), proporción de polkadot.com: ícono 1.2 × el tamaño de la letra */
+.polkadot-logo { display: inline-flex; align-items: center; gap: 0.5em; font: 400 20px/1 'DM Serif Display', Georgia, serif; color: #1c1917; white-space: nowrap; }
+.polkadot-logo img { width: 1.2em; height: 1.2em; flex: none; }
+.polkadot-logo.claro { color: #f5f5f4; }
+.logo-polkadot { font-size: 34px; padding-block: 21px; }
 @media (max-width: 640px) {
   .pre-pie-fila { flex-wrap: wrap; gap: 24px 0; padding-top: 28px; padding-bottom: 28px; }
   .pre-pie-fila > * { padding: 0 20px; }
   .pre-pie-fila > .logo-uanl { flex-basis: 100%; height: 52px; object-fit: contain; border: 0; padding: 0; }
   .pre-pie-fila > .logo-facpya { height: 60px; border-left: 0; }
-  .logo-polkadot { height: 32px; padding-block: 14px; }
+  .logo-polkadot { font-size: 27px; padding-block: 14px; }
 }
 
 /* ---------- Pie ---------- */
@@ -400,13 +413,13 @@ input:disabled { background: var(--gris-2); border-color: var(--linea); color: v
 .pm-logos { display: grid; justify-items: center; gap: 22px; }
 .pm-uanl { width: min(100%, 330px); height: auto; }
 .pm-x { font: 400 26px/1 var(--serif); color: var(--oro); }
-.pm-polkadot { height: 52px; width: auto; }
+.pm-polkadot { font-size: 44px; }
 .portada-marcas figcaption { display: grid; gap: 4px; padding-top: 22px; border-top: 1px solid rgb(255 255 255 / 0.2); text-align: center; font-size: 15px; color: rgb(255 255 255 / 0.8); }
 .portada-marcas figcaption strong { font: 700 13.5px/1.4 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--oro); }
 @media (max-width: 520px) {
   .portada-marcas { padding: 32px 22px 26px; gap: 26px; }
   .pm-uanl { width: min(100%, 250px); }
-  .pm-polkadot { height: 42px; }
+  .pm-polkadot { font-size: 36px; }
 }
 .regla { height: 6px; background: var(--rojo); }
 @media (max-width: 900px) {
