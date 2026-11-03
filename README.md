@@ -46,7 +46,7 @@ src/              la app (TypeScript + Vite, sin framework)
   lib/            host, cadena, contrato, organizador, IPFS, sesión, reclamo
   vistas/         inicio, constancia, organizar, certificado, mis, verificar, cartel, diagnóstico
 api/              funciones de Vercel: reclamar, solicitar, subida
-tools/            CLI: emitir por lote, admin (emisores), relayer
+tools/            CLI: emitir por lote, admin (emisores, revocar), relayer
 scripts/          deploy a Bulletin con pad, ficha de la app (manifest + ícono), revisión
 docs/diseno.md    sistema de diseño: Polkadot México × UANL (colores, tipografía, componentes)
 ```
@@ -64,6 +64,7 @@ npm test                   # pruebas de la app
 npm run deploy             # build + pad + ficha (Terminal.app: pad pide Y y el celular firma)
 npm run manifest           # solo la ficha (nombre, descripción, ícono)
 npm run admin -- emisor <usuario|SS58|0x…> [--quitar]
+npm run admin -- revocar <folio> "<motivo>"   # público y sin vuelta atrás; firma el admin
 npm run relayer -- estado
 npm run emitir -- lotes/<lote>/lista.csv [--simulacion]   # respaldo: emisión por CLI con links por correo
 ```
