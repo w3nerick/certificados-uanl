@@ -25,6 +25,16 @@ Archivos en `src/assets/logos/`, optimizados con `pngquant`:
 
 No se redibujan ni se recolorean salvo la versión blanca del logotipo UANL.
 
+**Ícono de la app** (`icon.png`, el de la ficha en la Polkadot App, y `public/favicon.png`): el pergamino
+con pluma que eligió el organizador (`scripts/icono/pergamino.png`, fondo transparente) al 82 % sobre azul
+UANL #004A8F, 512 × 512, para que se vea igual en el menú claro y en el oscuro:
+
+```bash
+magick -size 512x512 xc:'#004A8F' \( scripts/icono/pergamino.png -resize 82% \) -gravity center -composite -strip icon.png
+pngquant --force --quality 80-98 --ext .png --strip icon.png
+magick icon.png -resize 64x64 -strip public/favicon.png
+```
+
 **Logotipo de Polkadot** (`logoPolkadot()` en `comun.ts`): igual que en la cabecera de polkadot.com, el ícono
 y la palabra «Polkadot» en **DM Serif Display** 400 (tipografía de la marca, empaquetada solo para esto), el
 ícono a 1.2 × el tamaño de la letra y separados media letra. Texto #1C1917 sobre claro y #F5F5F4 sobre oscuro.
