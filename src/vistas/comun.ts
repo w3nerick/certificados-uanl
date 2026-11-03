@@ -5,20 +5,17 @@
  * Aquí también viven las piezas compartidas (pasos, nota, ficha de cuenta).
  *
  * Logotipos oficiales (src/assets/logos, tomados de facpya.uanl.mx y del kit de Polkadot México): el
- * escudo de la FACPYA en la marca, la pestaña «UANL.MX» en la banda azul y, antes del pie, la fila
- * UANL · FACPYA · Polkadot, como el «prefooter» de los sitios de facultades.
+ * escudo de la FACPYA en la marca y, antes del pie, la fila
+ * UANL · FACPYA · Polkadot (logotipo oficial completo, no escrito), como el «prefooter» de los sitios de facultades.
  */
 import { el, icono, aviso, type Icono } from '../ui';
 import type { Destino } from '../lib/cuenta';
 import { registroListo } from '../lib/registro';
 import { qrSvg } from '../lib/qr';
-import { abrirFuera } from '../lib/permisos';
 import escudoFacpya from '../assets/logos/facpya.png?url';
 import logoUanl from '../assets/logos/uanl.png?url';
-import pestanaUanl from '../assets/logos/uanl-mx.png?url';
-import iconoPolkadot from '../assets/logos/polkadot.svg?url';
+import logoPolkadot from '../assets/logos/polkadot.png?url';
 
-const PORTAL_UANL = 'https://www.uanl.mx';
 
 export type Seccion = 'inicio' | 'constancia' | 'mis' | 'verificar' | 'organizar' | 'cartel' | 'diagnostico' | 'otra';
 type Hijo = Node | string | null | undefined | false;
@@ -32,23 +29,12 @@ const marca = () => el('a', { class: 'marca', href: '#/' },
   ),
 );
 
-/** Enlace que sale de la app: dentro de la Polkadot App lo abre el host; en el navegador, otra pestaña. */
-function enlaceFuera(href: string, ...hijos: (Node | string)[]): HTMLElement {
-  const a = el('a', { href, target: '_blank', rel: 'noopener' }, ...hijos);
-  a.onclick = e => { e.preventDefault(); void abrirFuera(href); };
-  return a;
-}
-
-/** Banda azul de la izquierda con la pestaña «UANL.MX» que lleva al portal, como en los sitios de facultades. */
-const banda = () => el('div', { class: 'banda-uanl' },
-  enlaceFuera(PORTAL_UANL, el('img', { src: pestanaUanl, alt: 'Ir al portal oficial de la UANL', width: '45', height: '280' })));
-
 /** Fila de logotipos antes del pie: UANL, FACPYA y Polkadot. */
 const logos = () => el('section', { class: 'pre-pie', 'aria-label': 'Instituciones participantes' },
   el('div', { class: 'contenedor pre-pie-fila' },
     el('img', { class: 'logo-uanl', src: logoUanl, alt: 'Universidad Autónoma de Nuevo León', width: '356', height: '150' }),
     el('img', { class: 'logo-facpya', src: escudoFacpya, alt: 'Facultad de Contaduría Pública y Administración', width: '132', height: '176' }),
-    el('span', { class: 'logo-polkadot' }, el('img', { src: iconoPolkadot, alt: '', width: '256', height: '256' }), el('span', {}, 'Polkadot')),
+    el('img', { class: 'logo-polkadot', src: logoPolkadot, alt: 'Polkadot', width: '446', height: '96' }),
   ));
 
 /**
@@ -166,7 +152,7 @@ export function marco(root: HTMLElement, actual: Seccion, ...contenido: Hijo[]):
     destino.setAttribute('tabindex', '-1');
     destino.focus();
   };
-  root.replaceChildren(saltar, banda(), ...cabeceraSitio(actual), main, logos(), pie());
+  root.replaceChildren(saltar, el('div', { class: 'banda-uanl', 'aria-hidden': 'true' }), ...cabeceraSitio(actual), main, logos(), pie());
   window.scrollTo(0, 0);
   anunciar(main);
 }

@@ -21,11 +21,11 @@ Archivos en `src/assets/logos/`, optimizados con `pngquant`:
 | --- | --- | --- |
 | `facpya.png` | Escudo de la FACPYA (ícono del sitio facpya.uanl.mx, 512 px) | Marca de la cabecera y del pie, fila de logotipos, cartel |
 | `uanl.png` / `uanl-blanco.png` | Logotipo UANL del «prefooter» de facpya.uanl.mx (gris); la versión blanca es el mismo archivo recoloreado | Fila de logotipos / portada sobre marino |
-| `uanl-mx.png` | Pestaña «UANL.MX» de la banda azul del tema de facultades | Banda azul (enlace al portal de la UANL) |
-| `polkadot.svg` / `polkadot-blanco.svg` | Ícono de Polkadot del kit de marca de Polkadot México | Fila de logotipos / portada |
+| `polkadot.png` / `polkadot-blanco.png` | Logotipo oficial de Polkadot (rosa y negro / rosa y blanco) del kit de marca de Polkadot México, el mismo de las constancias | Fila de logotipos / portada |
 
-No se redibujan ni se recolorean salvo la versión blanca del logotipo UANL. «Polkadot» junto al ícono va
-en Archivo 600.
+No se redibujan ni se recolorean salvo la versión blanca del logotipo UANL. «Polkadot» nunca se escribe con
+las fuentes de la app junto a un ícono: siempre el logotipo oficial completo (su wordmark es parte del
+archivo).
 
 ## Colores
 
@@ -61,7 +61,6 @@ Folios y huellas sha256 van en la monoespaciada del sistema. Nada se pide a Goog
 - **Banda azul UANL** de 35 px fija a la izquierda (solo desde 1024 px).
 - **Barra gris** con «Universidad Autónoma de Nuevo León» en versales y, a la derecha, «Constancias
   registradas en Polkadot».
-- **Banda azul**: lleva la pestaña «UANL.MX» que abre el portal de la UANL, como en los sitios de facultades.
 - **Cabecera blanca**: escudo de la FACPYA, filete y «Certificados en Cadena» en versales con «Facultad de
   Contaduría Pública y Administración» debajo («FACPYA · UANL» en celular). A la derecha, el buscador de folio
   (lleva a `#/c/<folio>`) y los accesos de organizadores (Organizadores, Cartel con QR, Diagnóstico), separados

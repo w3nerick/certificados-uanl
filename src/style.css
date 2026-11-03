@@ -4,7 +4,7 @@
  *   marca, menú en barra roja y pie con franja roja.
  * - Rojo FACPYA #aa2c2b para acciones, enlaces y reglas; azul UANL #004a8f para la banda y el foco;
  *   marino #002144 y oro #fbc43d para la portada.
- * - Logotipos oficiales (UANL, FACPYA, Polkadot) en la marca, la banda, la portada y antes del pie.
+ * - Logotipos oficiales (UANL, FACPYA, Polkadot) en la marca, la portada y antes del pie.
  * - Los certificados se muestran siempre como su PDF original (.visor), nunca redibujados.
  * - Archivo (en lugar de Benton Sans), Bitter (en lugar de Sanchez) y EB Garamond para las versales:
  *   libres (OFL) y empaquetadas, solo el subconjunto latino (menos archivos en Bulletin).
@@ -111,9 +111,6 @@ p { margin: 0; }
 @media (min-width: 1024px) {
   body { padding-left: var(--banda); }
   .banda-uanl { display: block; position: fixed; inset: 0 auto 0 0; z-index: 30; width: var(--banda); background: var(--azul); box-shadow: 3px 0 10px rgb(0 0 0 / 0.22); }
-  .banda-uanl a { display: block; padding-top: 150px; }
-  .banda-uanl img { display: block; width: var(--banda); height: auto; transition: opacity 0.15s; }
-  .banda-uanl a:hover img { opacity: 0.85; }
 }
 
 .saltar { position: absolute; left: 12px; top: -64px; z-index: 40; padding: 10px 14px; background: var(--marino); color: #fff; font-weight: 600; text-decoration: none; }
@@ -237,17 +234,15 @@ main { flex: 1; width: 100%; }
 .pre-pie-fila { display: flex; align-items: center; justify-content: center; gap: 0; padding-top: 36px; padding-bottom: 36px; }
 .pre-pie-fila > * { padding: 0 40px; }
 .pre-pie-fila > * + * { border-left: 1px solid var(--linea); }
-.logo-uanl { height: 64px; width: auto; }
+.logo-uanl { height: 64px; width: auto; box-sizing: content-box; padding-block: 6px; }
 .logo-facpya { height: 76px; width: auto; box-sizing: content-box; }
-.logo-polkadot { display: inline-flex; align-items: center; gap: 10px; font: 600 25px/1 var(--sans); letter-spacing: -0.02em; color: #111; }
-.logo-polkadot img { width: 34px; height: 34px; }
+.logo-polkadot { height: 40px; width: auto; box-sizing: content-box; padding-block: 18px; }
 @media (max-width: 640px) {
   .pre-pie-fila { flex-wrap: wrap; gap: 24px 0; padding-top: 28px; padding-bottom: 28px; }
   .pre-pie-fila > * { padding: 0 20px; }
   .pre-pie-fila > .logo-uanl { flex-basis: 100%; height: 52px; object-fit: contain; border: 0; padding: 0; }
   .pre-pie-fila > .logo-facpya { height: 60px; border-left: 0; }
-  .logo-polkadot { font-size: 21px; }
-  .logo-polkadot img { width: 28px; height: 28px; }
+  .logo-polkadot { height: 32px; padding-block: 14px; }
 }
 
 /* ---------- Pie ---------- */
@@ -405,15 +400,13 @@ input:disabled { background: var(--gris-2); border-color: var(--linea); color: v
 .pm-logos { display: grid; justify-items: center; gap: 22px; }
 .pm-uanl { width: min(100%, 330px); height: auto; }
 .pm-x { font: 400 26px/1 var(--serif); color: var(--oro); }
-.pm-polkadot { display: inline-flex; align-items: center; gap: 12px; font: 600 34px/1 var(--sans); letter-spacing: -0.02em; color: #fff; }
-.pm-polkadot img { width: 44px; height: 44px; }
+.pm-polkadot { height: 52px; width: auto; }
 .portada-marcas figcaption { display: grid; gap: 4px; padding-top: 22px; border-top: 1px solid rgb(255 255 255 / 0.2); text-align: center; font-size: 15px; color: rgb(255 255 255 / 0.8); }
 .portada-marcas figcaption strong { font: 700 13.5px/1.4 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--oro); }
 @media (max-width: 520px) {
   .portada-marcas { padding: 32px 22px 26px; gap: 26px; }
   .pm-uanl { width: min(100%, 250px); }
-  .pm-polkadot { font-size: 28px; }
-  .pm-polkadot img { width: 36px; height: 36px; }
+  .pm-polkadot { height: 42px; }
 }
 .regla { height: 6px; background: var(--rojo); }
 @media (max-width: 900px) {
