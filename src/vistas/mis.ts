@@ -3,7 +3,8 @@
  * en un navegador se busca por usuario (ana.01) o dirección. Se recuerda el último
  * usuario en el almacenamiento del host (sobrevive a cada versión de la app).
  */
-import { marco, hoja, cabecera, fichaCuenta, ceja } from './comun';
+import { marco, cabecera, fichaCuenta, ceja } from './comun';
+import { visorPdf } from './visor';
 import { el, boton, aviso, cargando } from '../ui';
 import { deTitular, conSolicitudes, certificado, errorLegible } from '../lib/registro';
 import { resolverCuenta, cuentaDelHost, type Destino } from '../lib/cuenta';
@@ -32,7 +33,7 @@ export async function vistaMis(root: HTMLElement): Promise<void> {
         certs.length
           ? el('div', { class: 'pila-s' },
             ceja(certs.length === 1 ? '1 certificado' : `${certs.length} certificados`),
-            el('div', { class: 'lista-cert' }, ...certs.map(c => el('a', { href: `#/c/${c.id}` }, hoja(c),
+            el('div', { class: 'lista-cert' }, ...certs.map(c => el('a', { href: `#/c/${c.id}` }, visorPdf(c, { ancho: 420, compacto: true }),
               el('div', { class: 'lista-cert-pie' }, el('span', {}, `Folio ${c.id}${c.revocado ? ' · revocado' : ''}`), el('span', {}, c.programa))))))
           : aviso('info', 'Esta cuenta todavía no tiene certificados asignados.', el('a', { href: '#/constancia' }, 'Reclamar mi constancia')),
       );

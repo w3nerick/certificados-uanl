@@ -3,7 +3,8 @@
  * constancia que le corresponde. Pedir no la asigna: el organizador revisa y aprueba.
  * El relayer paga la transacción; el estudiante no necesita saldo.
  */
-import { marco, hoja, cabecera, paso, fichaCuenta, ceja, nota } from './comun';
+import { marco, cabecera, paso, fichaCuenta, ceja, nota } from './comun';
+import { visorPdf } from './visor';
 import { el, boton, aviso, cargando, fechaLarga } from '../ui';
 import { todos, coincideNombre, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { resolverCuenta, cuentaDelHost, type Destino } from '../lib/cuenta';
@@ -115,7 +116,7 @@ export function vistaConstancia(root: HTMLElement): void {
               }
             },
           });
-          return el('article', { class: 'resultado' }, hoja(c), el('div', { class: 'resultado-lado' },
+          return el('article', { class: 'resultado' }, visorPdf(c, { ancho: 520, compacto: true }), el('div', { class: 'resultado-lado' },
             ceja(`Folio ${c.id}`),
             el('h3', {}, c.nombre),
             el('p', { class: 'muted' }, c.programa, el('br'), fechaLarga(c.fecha)),

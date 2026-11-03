@@ -7,7 +7,8 @@
  * 3. El navegador firma (contrato, id, titular) con la llave del código y el
  *    relayer lo envía y paga. Nadie más puede cambiar el titular.
  */
-import { marco, hoja, ceja, migas, seccionLateral, fichaCuenta } from './comun';
+import { marco, ceja, migas, seccionLateral, fichaCuenta } from './comun';
+import { visorPdf } from './visor';
 import { el, boton, aviso, cargando } from '../ui';
 import { certificado, contrato, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { firmarReclamo, llaveDeCodigo } from '../lib/reclamo';
@@ -113,7 +114,7 @@ export async function vistaReclamar(root: HTMLElement, id: bigint, codigo: strin
       el('p', { class: 'lead' }, 'Este certificado está registrado en Polkadot. Reclámalo para que quede ligado a tu cuenta y puedas compartirlo. No necesitas saldo: la institución paga la transacción.'),
     ),
     el('div', { class: 'dos-columnas' },
-      el('div', { class: 'pila-s' }, hoja(cert), ceja(`Folio ${cert.id}`)),
+      el('div', { class: 'pila-s' }, visorPdf(cert), ceja(`Folio ${cert.id}`)),
       el('aside', { class: 'lateral' }, seccionLateral('¿A qué cuenta va?', zona, estado)),
     ),
   );

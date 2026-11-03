@@ -12,7 +12,6 @@ import { vistaCertificado } from './vistas/certificado';
 import { vistaReclamar } from './vistas/reclamar';
 import { vistaMis } from './vistas/mis';
 import { vistaVerificar } from './vistas/verificar';
-import { vistaMuestra } from './vistas/muestra';
 import { vistaConstancia } from './vistas/constancia';
 import { marco, numerarVista } from './vistas/comun';
 import { aviso, boton } from './ui';
@@ -43,7 +42,6 @@ function render() {
   if (h === '#/verificar') return void vistaVerificar(root);
   if (h === '#/diagnostico') return perezosa(h, () => import('./vistas/diagnostico').then(m => m.vistaDiagnostico));
   if (h === '#/cartel') return perezosa(h, () => import('./vistas/cartel').then(m => m.vistaCartel));
-  if (h === '#/muestra') return vistaMuestra(root);
   vistaInicio(root);
 }
 

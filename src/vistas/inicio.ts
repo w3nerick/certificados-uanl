@@ -2,9 +2,9 @@
  * #/: qué es y a dónde ir. Sigue la portada de las facultades de la UANL: carrusel con título
  * en slab y regla roja, «Próximos eventos» en franja gris y «Repositorio institucional» en roja.
  */
-import { marco } from './comun';
-import { hojaMuestra } from './muestra';
+import { marco, logoPolkadot } from './comun';
 import { el, boton } from '../ui';
+import logoUanlBlanco from '../assets/logos/uanl-blanco.png?url';
 
 /** Un paso con el bloque de fecha de «Próximos eventos»: el número grande y el verbo en la franja roja. */
 const pasoInicio = (num: string, verbo: string, titulo: string, href: string, texto: string) =>
@@ -27,16 +27,25 @@ export function vistaInicio(root: HTMLElement): void {
             boton('Mis certificados', { href: '#/mis', icono: 'certificate', clase: 'claro' }),
           ),
         ),
-        el('a', { class: 'portada-hoja', href: '#/muestra', 'aria-label': 'Ver un certificado de ejemplo' },
-          hojaMuestra(),
-          el('p', {}, 'Ejemplo: así se ve el tuyo'),
+        // Los logotipos oficiales del evento, en blanco sobre el marino
+        el('figure', { class: 'portada-marcas' },
+          el('div', { class: 'pm-logos' },
+            el('img', { class: 'pm-uanl', src: logoUanlBlanco, alt: 'Universidad Autónoma de Nuevo León', width: '570', height: '240' }),
+            el('span', { class: 'pm-x', 'aria-hidden': 'true' }, '×'),
+            logoPolkadot(true, 'pm-polkadot'),
+          ),
+          el('figcaption', {},
+            el('strong', {}, 'Bootcamp + Hackathon'),
+            el('span', {}, 'Facultad de Contaduría Pública y Administración'),
+            el('span', {}, '29 al 31 de octubre de 2026'),
+          ),
         ),
       ),
       el('div', { class: 'contenedor' }, el('div', { class: 'regla' })),
     ),
     el('section', { class: 'franja gris', 'aria-labelledby': 'como' },
       el('div', { class: 'contenedor' },
-        el('header', { class: 'franja-cab' }, el('h2', { id: 'como' }, 'Cómo funciona'), el('a', { href: '#/muestra' }, 'Ver un ejemplo')),
+        el('header', { class: 'franja-cab' }, el('h2', { id: 'como' }, 'Cómo funciona')),
         el('ol', { class: 'pasos-inicio' },
           pasoInicio('1', 'Busca', 'Encuentra tu constancia', '#/constancia', 'Conecta tu cuenta de la Polkadot App y escribe tu nombre completo, tal como aparece en tu constancia.'),
           pasoInicio('2', 'Pide', 'Pídela para tu cuenta', '#/constancia', 'Toca «Es mía». El organizador revisa que seas tú y te la asigna. La institución paga la transacción.'),

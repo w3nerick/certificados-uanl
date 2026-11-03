@@ -2,12 +2,12 @@
  * #/c/<id>: la página pública de un certificado (lo que se comparte, como la de la PBA).
  * Todo sale de la cadena; el PDF se baja de IPFS y se compara con su huella.
  */
-import { marco, hoja, migas, seccionLateral, figuraQr } from './comun';
+import { marco, migas, seccionLateral, figuraQr } from './comun';
+import { visorPdf } from './visor';
 import { el, icono, boton, aviso, cargando, corta, fechaLarga } from '../ui';
 import { certificado, motivoRevocacion, esEmisor, cadenaLista, errorLegible, ZERO, type Certificado } from '../lib/registro';
 import { usuarioDe } from '../lib/cuenta';
-import { bajarPdf, type PdfBajado } from '../lib/ipfs';
-import { dibujarPdf } from '../lib/pdf';
+import type { PdfBajado } from '../lib/ipfs';
 import { abrirFuera } from '../lib/permisos';
 import { insideHost } from '../lib/host';
 import { WEB_URL, DOTLI_URL, EXPLORER_BLOCK } from '../lib/red';
@@ -49,43 +49,9 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
   }
   const cert = c;
 
-  // Vista: hoja on-chain o el PDF original
-  const area = el('div', { role: 'tabpanel', id: 'vista-cert', 'aria-labelledby': 'tab-hoja' }, hoja(cert));
-  const lienzo = el('canvas', { class: 'lienzo', role: 'img', 'aria-label': `PDF original del certificado de ${cert.nombre}` }) as HTMLCanvasElement;
-  let pdf: PdfBajado | null | undefined; // undefined = bajando
-  let dibujado = false;
-  const tabHoja = el('button', { type: 'button', role: 'tab', id: 'tab-hoja', 'aria-controls': 'vista-cert', 'aria-selected': 'true', tabindex: '0' }, 'Certificado');
-  const tabPdf = el('button', { type: 'button', role: 'tab', id: 'tab-pdf', 'aria-controls': 'vista-cert', 'aria-selected': 'false', tabindex: '-1' }, 'PDF original');
-  const mostrar = async (cual: 'hoja' | 'pdf') => {
-    for (const [t, sel] of [[tabHoja, cual === 'hoja'], [tabPdf, cual === 'pdf']] as const) {
-      t.setAttribute('aria-selected', String(sel));
-      t.tabIndex = sel ? 0 : -1;
-    }
-    area.setAttribute('aria-labelledby', cual === 'hoja' ? 'tab-hoja' : 'tab-pdf');
-    if (cual === 'hoja') { area.replaceChildren(hoja(cert)); return; }
-    if (pdf === undefined) { area.replaceChildren(cargando('Bajando el PDF original de IPFS…', 5)); return; }
-    if (pdf === null) { area.replaceChildren(aviso('mal', 'No se pudo bajar el PDF de IPFS ahora. La hoja de arriba sale de la cadena y sigue siendo válida.')); return; }
-    area.replaceChildren(lienzo);
-    if (!dibujado) {
-      try {
-        await dibujarPdf(pdf.bytes, lienzo, area.clientWidth || 800);
-        dibujado = true;
-      } catch (e) {
-        area.replaceChildren(aviso('mal', `No se pudo mostrar el PDF: ${(e as Error).message}`));
-      }
-    }
-  };
-  tabHoja.onclick = () => void mostrar('hoja');
-  tabPdf.onclick = () => void mostrar('pdf');
-  // Teclado como en cualquier pestaña: flechas, Inicio y Fin cambian y llevan el foco.
-  const pestanas = el('div', { class: 'pestanas', role: 'tablist', 'aria-label': 'Vista' }, tabHoja, tabPdf);
-  pestanas.onkeydown = e => {
-    const cual = e.key === 'ArrowLeft' || e.key === 'Home' ? 'hoja' : e.key === 'ArrowRight' || e.key === 'End' ? 'pdf' : null;
-    if (!cual) return;
-    e.preventDefault();
-    (cual === 'hoja' ? tabHoja : tabPdf).focus();
-    void mostrar(cual);
-  };
+  // El PDF original, tal como lo diseñó la institución (se baja una sola vez: también se usa abajo)
+  let pdf: PdfBajado | null = null;
+  const area = visorPdf(cert, { alCargar: p => actualizarPdf(p) });
 
   // Verificación
   const checkPdf = el('li', {}, icono('cube', 'ico espera'), el('div', {}, 'PDF original', el('small', {}, 'Bajando de IPFS y comparando su huella…')));
@@ -172,7 +138,6 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
             ? el('span', { class: 'etiqueta mal' }, icono('xCircle'), 'Revocado')
             : el('span', { class: 'etiqueta ok' }, icono('sealCheck'), 'Registrado en Polkadot'),
         ),
-        pestanas,
         area,
       ),
       el('aside', { class: 'lateral' },
@@ -186,15 +151,17 @@ export async function vistaCertificado(root: HTMLElement, id: bigint): Promise<v
     ),
   );
 
-  pdf = await bajarPdf(cert.cid, cert.sha256Pdf);
-  const [ic, txt] = !cert.cid
-    ? [icono('warning', 'ico espera'), el('div', {}, 'PDF original', el('small', {}, 'Este certificado no tiene PDF en IPFS.'))]
-    : pdf === null
-      ? [icono('warning', 'ico no'), el('div', {}, 'PDF original', el('small', {}, 'Ningún gateway IPFS respondió. Inténtalo más tarde.'))]
-      : pdf.integro
-        ? [icono('checkCircle', 'ico si'), el('div', {}, 'PDF íntegro', el('small', {}, 'Su huella sha256 coincide con la registrada en la cadena.'))]
-        : [icono('xCircle', 'ico no'), el('div', {}, 'El PDF no coincide', el('small', {}, 'El archivo que entregó IPFS no es el registrado. No lo uses como prueba.'))];
-  checkPdf.replaceChildren(ic, txt);
-  if (pdf?.integro) descargar.disabled = false;
-  if (tabPdf.getAttribute('aria-selected') === 'true') void mostrar('pdf');
+  /** Cada vez que el visor baja (o no) el PDF: el renglón de verificación y el botón de descarga. */
+  function actualizarPdf(p: PdfBajado | null): void {
+    pdf = p;
+    const [ic, txt] = !cert.cid
+      ? [icono('warning', 'ico espera'), el('div', {}, 'PDF original', el('small', {}, 'Este certificado no tiene PDF en IPFS.'))]
+      : p === null
+        ? [icono('warning', 'ico no'), el('div', {}, 'PDF original', el('small', {}, 'Ningún gateway IPFS respondió. Inténtalo más tarde.'))]
+        : p.integro
+          ? [icono('checkCircle', 'ico si'), el('div', {}, 'PDF íntegro', el('small', {}, 'Su huella sha256 coincide con la registrada en la cadena.'))]
+          : [icono('xCircle', 'ico no'), el('div', {}, 'El PDF no coincide', el('small', {}, 'El archivo que entregó IPFS no es el registrado. No lo uses como prueba.'))];
+    checkPdf.replaceChildren(ic, txt);
+    descargar.disabled = !p?.integro;
+  }
 }
