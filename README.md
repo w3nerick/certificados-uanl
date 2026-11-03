@@ -138,13 +138,13 @@ Un A4 listo para imprimir o proyectar en el evento, con el QR a la app y los tre
 
 ```mermaid
 flowchart LR
-  PDF["PDF de la UANL"] -- "el archivo" --> IPFS[("Pinata · IPFS")]
-  PDF -- "sha256 + CID + datos" --> C[("Contrato RegistroCertificados<br/>Asset Hub")]
-  E["Estudiante"] -- "«Es mía»" --> R["/api/solicitar<br/>relayer"] -- "solicitar()" --> C
-  O["Organizador"] -- "asignar()" --> C
-  X["Cualquiera"] -- "verifica la huella" --> C
-  X -- "baja el PDF" --> IPFS
-  B[("Bulletin")] -. "sirve la app" .-> E
+  O["Organizador"] -->|"elige"| PDF["PDF de la UANL"]
+  PDF -->|"el archivo"| IPFS[("Pinata · IPFS")]
+  PDF -->|"emitir(): sha256 + CID + datos"| C[("Contrato RegistroCertificados<br/>Asset Hub")]
+  E["Estudiante"] -->|"«Es mía»"| R["/api/solicitar<br/>relayer"]
+  R -->|"solicitar()"| C
+  O -->|"asignar()"| C
+  X["Cualquiera"] -->|"verifica la huella del PDF"| C
 ```
 
 ### Emisión
