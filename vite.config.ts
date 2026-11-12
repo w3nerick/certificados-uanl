@@ -64,7 +64,7 @@ function relayerLocal(): Plugin {
  * el deploy sea nuevo. Un comentario al principio cambia todos sus bloques y obliga a subirlo otra vez.
  * Cambia la fecha cuando las partes del worker vayan a caducar antes de un evento (simula el deploy antes).
  */
-const SUBIDA_WORKER = '2026-11-03';
+const SUBIDA_WORKER = '2026-11-11';
 function workerFresco(): Plugin {
   return {
     name: 'worker-fresco',
