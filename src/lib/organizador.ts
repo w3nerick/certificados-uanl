@@ -184,7 +184,7 @@ export async function emitir(lotes: Lote[], onAvance: (hecho: number, total: num
 // ---------- Solicitudes ----------
 
 export interface SolicitudRevisada extends Solicitud {
-  /** El usuario escrito es dueño de la cuenta que pide (comprobado en People chain). */
+  /** El usuario escrito es dueño de la cuenta que pide (People chain o DotnsGateway). */
   verificada: boolean;
 }
 
