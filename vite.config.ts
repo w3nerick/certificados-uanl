@@ -63,8 +63,13 @@ function relayerLocal(): Plugin {
  * venían en el deploy anterior: heredan la caducidad de su primera subida a Bulletin (unos 14 días), aunque
  * el deploy sea nuevo. Un comentario al principio cambia todos sus bloques y obliga a subirlo otra vez.
  * Cambia la fecha cuando las partes del worker vayan a caducar antes de un evento (simula el deploy antes).
+ *
+ * El comentario tiene que cambiar de LARGO, no solo de texto: con el mismo largo solo cambia el primer
+ * bloque de 256 KiB y pad reutiliza los otros 4 (pasó el 11 nov 2026: de 2026-11-03 a 2026-11-11). El
+ * relleno, con un largo distinto para cada fecha, mueve todos los cortes.
  */
-const SUBIDA_WORKER = '2026-11-11';
+const SUBIDA_WORKER = '2026-11-12';
+const RELLENO_WORKER = ' '.repeat((Number(SUBIDA_WORKER.replace(/-/g, '')) % 4093) + 1);
 function workerFresco(): Plugin {
   return {
     name: 'worker-fresco',
@@ -73,7 +78,7 @@ function workerFresco(): Plugin {
       for (const f of Object.values(bundle)) {
         if (f.type !== 'asset' || !/pdf\.worker/.test(f.fileName)) continue;
         const codigo = typeof f.source === 'string' ? f.source : new TextDecoder().decode(f.source);
-        f.source = `/* certificados-uanl: pdf.worker subido el ${SUBIDA_WORKER} */\n${codigo}`;
+        f.source = `/* certificados-uanl: pdf.worker subido el ${SUBIDA_WORKER}${RELLENO_WORKER}*/\n${codigo}`;
       }
     },
   };
