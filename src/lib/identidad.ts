@@ -6,9 +6,10 @@
  * - **app**: la cuenta de producto que el host deriva para ESTE dominio. Es lo
  *   que entrega `SignerManager.connect()`. Firma sin problema, pero nadie puede
  *   ligarla a una persona, y cambia si cambia el dominio.
- * - **identidad**: la cuenta dueña del username en People chain. Ata la firma a
- *   una persona. Se obtiene así: username → `Resources.UsernameOwnerOf` → llave
- *   → `getAccountsProvider().getLegacyAccountSigner(...)`.
+ * - **identidad**: la cuenta dueña del username. Ata la firma a una persona. Se
+ *   obtiene así: username → `Resources.UsernameOwnerOf` (People chain) o, si no
+ *   está, `DotnsGateway.LiteLabelOwner` (Asset Hub) → llave →
+ *   `getAccountsProvider().getLegacyAccountSigner(...)`.
  *
  * Fuera del host: cuenta de desarrollo (Alice), solo para ensayar.
  *
@@ -21,7 +22,7 @@ import { getAccountsProvider } from '@parity/product-sdk-host';
 // Solo el tipo: el signer (con sus llaves, ~90 KB) se baja al conectar, no al abrir la app.
 import type { SignerManager } from '@parity/product-sdk-signer';
 import { insideHost, waitForHost, withTimeout, describeError, TIMED_OUT, HOST_QUERY_MS, HOST_SUBMIT_MS } from './host';
-import { people, peopleViaPublic } from './cadena';
+import { assetHub, people, peopleViaPublic } from './cadena';
 import { APP_DOTNS } from './red';
 
 export type Llave = 'app' | 'identidad' | 'ensayo';
@@ -76,33 +77,34 @@ export async function conectar(usuarioEscrito?: string): Promise<Sesion> {
   const u = await withTimeout(manager.getUserId(), HOST_SUBMIT_MS).catch((e: unknown) => ({ ok: false as const, error: e }));
   const username = u !== TIMED_OUT && u.ok ? u.value.primaryUsername || null : null;
   let identidad: Sesion['identidad'] = null;
-  let sinIdentidad: string | null = null;
-  const motivo = u === TIMED_OUT ? 'el host no entregó el username a tiempo (¿aprobaste compartir tu identidad?)'
+  let sinIdentidad: string | null = u === TIMED_OUT ? 'el host no entregó el username a tiempo (¿aprobaste compartir tu identidad?)'
     : !u.ok ? `el host no entregó el username: ${describeError(u.error)}`
     : 'la cuenta no tiene username';
-  // Sin username del Host: la identidad se busca entre las cuentas del wallet o por el username escrito.
-  // Firmar con ella no necesita el username, solo su llave pública (getLegacyAccountSigner).
-  const respaldo = username ? null : await identidadSinUsername(usuarioEscrito).catch((e: Error) => e.message);
-  if (respaldo && typeof respaldo === 'object') {
-    identidad = respaldo.identidad;
-    sesion = { app, username: respaldo.username, identidad, sinIdentidad: null, ensayo: false };
-    return sesion;
-  }
-  if (!username) {
-    sinIdentidad = typeof respaldo === 'string' ? `${motivo}; ${respaldo}` : motivo;
-  } else {
+  if (username) {
     try {
       const owner = await usernameOwner(username);
       const ap = owner ? await withTimeout(getAccountsProvider(), HOST_QUERY_MS) : null;
-      if (!owner) sinIdentidad = `${username} no aparece en People chain`;
+      if (!owner) sinIdentidad = `${username} no aparece en People chain ni en Asset Hub`;
       else if (!ap || ap === TIMED_OUT) sinIdentidad = 'el host no entregó el proveedor de cuentas';
       else {
         const publicKey = ss58.enc(owner);
         identidad = { address: owner, publicKey, signer: ap.getLegacyAccountSigner({ publicKey, name: username }) };
       }
     } catch (e) {
-      sinIdentidad = `no se pudo consultar People chain (${(e as Error).message})`;
+      sinIdentidad = `no se pudo buscar la cuenta de ${username} (${(e as Error).message})`;
     }
+  }
+  // Sin username del Host, o uno que no se encontró: el username escrito o las cuentas del wallet.
+  // Firmar con la identidad no necesita el username, solo su llave pública (getLegacyAccountSigner).
+  if (!identidad) {
+    const respaldo = await identidadSinUsername(usuarioEscrito).catch((e: Error) => e.message);
+    if (respaldo && typeof respaldo === 'object') {
+      sesion = { app, username: respaldo.username, identidad: respaldo.identidad, sinIdentidad: null, ensayo: false };
+      return sesion;
+    }
+    if (typeof respaldo === 'string') sinIdentidad = `${sinIdentidad}; ${respaldo}`;
+  } else {
+    sinIdentidad = null;
   }
   sesion = { app, username, identidad, sinIdentidad, ensayo: false };
   return sesion;
@@ -118,7 +120,7 @@ async function identidadSinUsername(usuarioEscrito?: string): Promise<{ username
   const escrito = usuarioEscrito?.trim().toLowerCase();
   if (escrito) {
     const owner = await usernameOwner(escrito);
-    if (!owner) throw new Error(`${escrito} no aparece en People chain`);
+    if (!owner) throw new Error(`${escrito} no aparece en People chain ni en Asset Hub`);
     const publicKey = ss58.enc(owner);
     return { username: escrito, identidad: { address: owner, publicKey, signer: ap.getLegacyAccountSigner({ publicKey, name: escrito }) } };
   }
@@ -150,26 +152,71 @@ async function consultarPeople<T>(leer: (client: PolkadotClient) => Promise<T>):
   }
 }
 
-/** Dueño (SS58) de un username en People chain, o null si no existe. Lanza si no se pudo consultar. */
-export async function usernameOwner(username: string): Promise<string | null> {
-  const r = await consultarPeople(c =>
-    c.getUnsafeApi().query.Resources.UsernameOwnerOf.getValue(new TextEncoder().encode(username)) as Promise<string | undefined>);
-  return r ?? null;
+/** Lee un storage de Asset Hub con tope de tiempo. Lanza si no se pudo consultar. */
+async function consultarAssetHub<T>(leer: (client: PolkadotClient) => Promise<T>): Promise<T> {
+  // Holgado: la primera consulta baja la metadata de Asset Hub (~1.3 MB).
+  const r = await withTimeout(leer((await assetHub()).client), 45_000);
+  if (r === TIMED_OUT) throw new Error('Asset Hub no respondió');
+  return r;
+}
+
+/**
+ * Dueño (SS58) de un username, o null si no existe. Lanza si no se pudo consultar.
+ * Primero People chain; si no está ahí, `DotnsGateway.LiteLabelOwner` en Asset Hub: los hosts
+ * nuevos (TrUAPI 0.26+) leen el nombre de ahí, y una cuenta restaurada puede tener ahí otro
+ * nombre lite que People chain no conoce (eserick.01 en Asset Hub, esserick.01 en People).
+ */
+export function usernameOwner(username: string): Promise<string | null> {
+  const bytes = new TextEncoder().encode(username);
+  return peopleOAssetHub(
+    consultarPeople(c =>
+      c.getUnsafeApi().query.Resources.UsernameOwnerOf.getValue(bytes) as Promise<string | undefined>).then(r => r ?? null),
+    consultarAssetHub(c =>
+      c.getUnsafeApi().query.DotnsGateway.LiteLabelOwner.getValue(bytes) as Promise<string | undefined>).then(r => r ?? null),
+  );
+}
+
+/**
+ * Las dos consultas ya van en paralelo (la primera de cada cadena baja su metadata). Gana People;
+ * Asset Hub solo cuenta si People no tiene nada. Lanza si no hay respuesta confiable.
+ */
+async function peopleOAssetHub<T>(dePeople: Promise<T | null>, deAssetHub: Promise<T | null>): Promise<T | null> {
+  deAssetHub.catch(() => {}); // sin «unhandled rejection» cuando People gana
+  let errorPeople: unknown = null;
+  const p = await dePeople.catch((e: unknown) => { errorPeople = e; return null; });
+  if (p != null) return p;
+  let a: T | null;
+  try {
+    a = await deAssetHub;
+  } catch (e) {
+    throw errorPeople ?? e;
+  }
+  if (a == null && errorPeople) throw errorPeople;
+  return a;
 }
 
 type Bytes = Uint8Array | string | undefined;
 
-/**
- * Username de una cuenta (`Resources.Consumers`): el completo si es persona verificada,
- * si no el lite (esserick.01). null si la cuenta no tiene. Lanza si no se pudo consultar.
- */
-export async function usernameDe(ss58: string): Promise<string | null> {
-  const c = await consultarPeople(cl =>
-    cl.getUnsafeApi().query.Resources.Consumers.getValue(ss58) as Promise<{ full_username?: Bytes; lite_username?: Bytes } | undefined>);
-  const u = c?.full_username ?? c?.lite_username;
+function texto(u: Bytes | null): string | null {
   if (u == null) return null;
   if (typeof u !== 'string') return new TextDecoder().decode(u);
   return /^0x([0-9a-f]{2})*$/i.test(u) ? new TextDecoder().decode(Uint8Array.from(u.slice(2).match(/../g) ?? [], b => parseInt(b, 16))) : u;
+}
+
+/**
+ * Username de una cuenta (`Resources.Consumers` de People chain): el completo si es persona
+ * verificada, si no el lite (esserick.01). Si People no tiene ninguno, el de
+ * `DotnsGateway.AccountNames` en Asset Hub. null si la cuenta no tiene. Lanza si no se pudo consultar.
+ */
+export function usernameDe(ss58: string): Promise<string | null> {
+  return peopleOAssetHub(
+    consultarPeople(cl =>
+      cl.getUnsafeApi().query.Resources.Consumers.getValue(ss58) as Promise<{ full_username?: Bytes; lite_username?: Bytes } | undefined>)
+      .then(c => texto(c?.full_username ?? c?.lite_username ?? null)),
+    consultarAssetHub(cl =>
+      cl.getUnsafeApi().query.DotnsGateway.AccountNames.getValue(ss58) as Promise<{ full?: { label?: Bytes }; lite?: { label?: Bytes } } | undefined>)
+      .then(n => texto(n?.full?.label ?? n?.lite?.label ?? null)),
+  );
 }
 
 /**
